@@ -1,7 +1,12 @@
 package mariri.oredictconverter;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.oredict.OreDictionary;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
@@ -19,17 +24,33 @@ public class OreDictConverter {
         @Instance(value = "OreDictConverterMod")
         public static OreDictConverter instance;
         
+        private static List<RegistItem> registItemList;
         
         @EventHandler // used in 1.6.2
         //@PreInit    // used in 1.5.2
         public void preInit(FMLPreInitializationEvent event) {
-            // Stub Method
             Configuration config = new Configuration(event.getSuggestedConfigurationFile());
 	        config.load();
 	        String defValue = "ore.*";
-            //Notice there is nothing that gets the value of this property so the expression results in a Property object.
+	        
+	        // Converter
 	        EntityJoinWorldHandler.convertNames = 
 	        		splitAndTrim(config.get(Configuration.CATEGORY_GENERAL, "ConvertWhitelist", defValue).getString(), ",");
+	        
+	        // Register
+	        String[] defNames = {"treeSapling", "treeLeaves"};
+	        String[] defIds = {"892:0, 892:1, 892:2, 892:3, 3124", "894:0, 894:1, 894:2, 894:3, 3123"};
+	        registItemList = new ArrayList<RegistItem>();
+	        
+	        int registValue = config.get(Configuration.CATEGORY_GENERAL, "RegistOreDictValue", defNames.length).getInt();
+	        for(int i = 0; i < registValue; i++){
+	        	String categoryName = "RegisterItem" + (i + 1);
+	        	registItemList.add(new RegistItem(
+	    	        	config.get(categoryName, "Name", defNames[i]).getString(), 
+	    	        	stringToInt(config.get(categoryName, "ItemIds", defIds[i]).getString(), ",", ":")
+	       			));	        	
+	        }
+	        
 	        config.save();
         }
         
@@ -42,6 +63,26 @@ public class OreDictConverter {
             return ids;
         }
 
+        private static int[] stringToInt(String str, String separator){
+	        String[] aaa = str.split(separator);
+	        int[] ids = new int[aaa.length];
+            for(int i = 0; i < aaa.length; i++){
+            	ids[i]= Integer.parseInt(aaa[i].trim());
+            }
+            return ids;
+        }
+        
+        private static int[][] stringToInt(String str, String separator1, String separator2){
+        	String[] aaa = str.split(separator1);
+        	int[][] ids = new int[aaa.length][];
+        	for(int i = 0; i < aaa.length; i++){
+        		int[] s = stringToInt(aaa[i], separator2);
+        		ids[i] = new int[2];
+        		ids[i][0] = s[0];
+        		ids[i][1] = (s.length >= 2) ? s[1] : 0;
+        	}
+        	return ids;
+        }
        
         @EventHandler // used in 1.6.2
         //@PostInit   // used in 1.5.2
@@ -51,8 +92,16 @@ public class OreDictConverter {
         @EventHandler // used in 1.6.2
         //@Init       // used in 1.5.2
         public void load(FMLInitializationEvent event) {
-//        	MinecraftForge.EVENT_BUS.register(new EntityItemPickupHandler());
+        	// Converter
         	MinecraftForge.EVENT_BUS.register(new EntityJoinWorldHandler());
+        	
+        	// Register
+        	for(RegistItem item : registItemList){
+        		String name = item.getName();
+        		for(int[] id : item.getItemIds()){
+        			OreDictionary.registerOre(name, new ItemStack(id[0], 1, id[1]));
+        		}
+        	}
       }
         
         public static void main(String[] args){
