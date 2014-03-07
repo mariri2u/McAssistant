@@ -1,4 +1,4 @@
-package mariri.oredictconverter;
+package mariri.autounifier;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

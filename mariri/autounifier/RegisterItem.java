@@ -1,10 +1,10 @@
-package mariri.oredictconverter;
+package mariri.autounifier;
 
-public class RegistItem {
+public class RegisterItem {
 	private String name;
 	private int[][] itemIds;
 	
-	public RegistItem(String name, int[][] itemIds){
+	public RegisterItem(String name, int[][] itemIds){
 		this.name = name;
 		this.itemIds = itemIds;
 	}
