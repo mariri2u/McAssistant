@@ -19,10 +19,10 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameData;
 
-@Mod(modid = MCAssistant.MODID, version = MCAssistant.VERSION)
-public class MCAssistant
+@Mod(modid = McAssistant.MODID, version = McAssistant.VERSION)
+public class McAssistant
 {
-    public static final String MODID = "MCAssistant";
+    public static final String MODID = "McAssistant";
     public static final String VERSION = "1.7.2-1.0";
     
     private static final String CATEGORY_TREE = "CutdownTree";
@@ -45,7 +45,8 @@ public class MCAssistant
         // CropHarvesterSetting
         PlayerHarvestEventHandler.ENABLE_CROP_HARVESTER = config.get(CATEGORY_CROP, "enable", true).getBoolean(true);
         CropHarvester.SUPLY_INVENTORY = config.get(CATEGORY_CROP, "suplyFromInventory", true).getBoolean(true);
-      
+        CropHarvester.ENABLE_AUTO_CRAFT = config.get(CATEGORY_CROP, "enableAutoCraft", true).getBoolean(true);
+
         // AutoUnifier
         EntityJoinWorldHandler.ENABLE_UNIFING = config.get(CATEGORY_UNIFY, "enable", true).getBoolean(true);
         EntityJoinWorldHandler.CONVERT_NAMES = 

@@ -1,7 +1,7 @@
 package mariri.harvest;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockCrops;
+import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockLog;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemAxe;
@@ -61,7 +61,7 @@ public class PlayerHarvestEventHandler {
 	
 	private boolean isCrop(Block block){
 		// change to BlockBush ?
-		return block instanceof BlockCrops;
+		return block instanceof BlockBush;
 	}
 
 }
