@@ -93,16 +93,13 @@ public class PlayerHarvestEventHandler {
 		for(String regex : regexes){
 			result |= block.getUnlocalizedName().matches(regex);
 		}
-		System.out.println(block.getUnlocalizedName());
 		Class clazz = block.getClass();
 		while(clazz != null){
 			for(String regex : regexes){
 				result |= clazz.getCanonicalName().matches(regex);
 			}
-			System.out.println(clazz.getCanonicalName());
 			clazz = clazz.getSuperclass();
 		}
-		System.out.println(result);
 		
 		return result;
 //		return block instanceof BlockCrops;

@@ -55,9 +55,7 @@ public class CropHarvester extends Harvester {
 		if(this.drops.size() == 0){
 //			block.dropBlockAsItem(world, target.x, target.y, target.z, metadata, 0);
 			drops = new ArrayList<ItemStack>();
-			System.out.println(this.drops.size());
 			List entityList = world.loadedEntityList;
-			System.out.println(entityList.size());
 			for(Object obj : entityList){
 				if(obj instanceof EntityItem){
 					EntityItem entity = (EntityItem)obj;
@@ -71,7 +69,6 @@ public class CropHarvester extends Harvester {
 					}
 				}
 			}
-			System.out.println(drops.size());
 		}else{
 			drops = this.drops;
 		}
@@ -138,11 +135,9 @@ public class CropHarvester extends Harvester {
 		result |= item instanceof ItemSeedFood;
 		String regex = ".*[sS]eed.*";
 		result |= item.getUnlocalizedName().matches(regex);
-		System.out.println(item.getUnlocalizedName());
 		Class clazz = item.getClass();
 		while(clazz != null){
 			result |= clazz.getCanonicalName().matches(regex);
-			System.out.println(clazz.getCanonicalName());
 			clazz = clazz.getSuperclass();
 		}
 		
