@@ -1,4 +1,4 @@
-package mariri.autounifier;
+package mariri.mcassistant.unify;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,7 +11,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 public class EntityJoinWorldHandler {
 	
-	static String[] convertNames;
+	public static String[] convertNames;
 
 	@ForgeSubscribe
 	public void doEvent(EntityJoinWorldEvent event){
@@ -29,9 +29,11 @@ public class EntityJoinWorldHandler {
 	private boolean isMatch(String str, String[] regexList){
 		boolean result = false;
 		for(String regex : regexList){
-			Pattern p = Pattern.compile(regex);
-			Matcher m = p.matcher(str);
-			result = result | m.find();
+			if(!regex.equals("")){
+				Pattern p = Pattern.compile(regex);
+				Matcher m = p.matcher(str);
+				result = result | m.find();
+			}
 		}
 		return result;
 	}

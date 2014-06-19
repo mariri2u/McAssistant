@@ -1,8 +1,14 @@
-package mariri.autounifier;
+package mariri.mcassistant;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import mariri.mcassistant.harvest.CropHarvester;
+import mariri.mcassistant.harvest.EdgeHarvester;
+import mariri.mcassistant.harvest.PlayerHarvestEventHandler;
+import mariri.mcassistant.lib.Misc;
+import mariri.mcassistant.unify.EntityJoinWorldHandler;
+import mariri.mcassistant.unify.RegisterItem;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
@@ -17,15 +23,21 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 
 
-@Mod(modid="AutoUnifier", name="AutoUnifier", version="1.0.0", dependencies = "")
+@Mod(modid="McAssistant", name="McAssistant", version="1.6.4-1.0", dependencies = "")
 @NetworkMod(clientSideRequired=false)
-public class AutoUnifier {
+public class McAssistant {
 
         // The instance of your mod that Forge uses.
-        @Instance(value = "AutoUnifier")
-        public static AutoUnifier instance;
+        @Instance(value = "McAssistant")
+        public static McAssistant instance;
         
         private static List<RegisterItem> registerList;
+        
+        private static final String CATEGORY_TREE = "CutdownTree";
+        private static final String CATEGORY_CROP = "AutoReplant";
+        private static final String CATEGORY_UNIFY = "AutoUnify";
+        private static final String CATEGORY_REGISTER = "OreDictionaryRegister";
+        private static final String CATEGORY_REGISTER_ITEM = "RegisterItem";
         
         @EventHandler // used in 1.6.2
         //@PreInit    // used in 1.5.2
@@ -33,18 +45,28 @@ public class AutoUnifier {
             Configuration config = new Configuration(event.getSuggestedConfigurationFile());
 	        config.load();
 	        
+	        // EdgeHarvesterSetting
+	        PlayerHarvestEventHandler.ENABLE_EDGE_HARVESTER = config.get(CATEGORY_TREE, "enable", true).getBoolean(true);
+	        EdgeHarvester.MAX_Y_DISTANCE = config.get(CATEGORY_TREE, "maxYDistance", 30).getInt();
+	        EdgeHarvester.HARVEST_BELOW = config.get(CATEGORY_TREE, "harvestBelow", false).getBoolean(false);
+	        
+	        // CropHarvesterSetting
+	        PlayerHarvestEventHandler.ENABLE_CROP_HARVESTER = config.get(CATEGORY_CROP, "enable", true).getBoolean(true);
+	        CropHarvester.SUPLY_INVENTORY = config.get(CATEGORY_CROP, "suplyFromInventory", true).getBoolean(true);
+	        CropHarvester.ENABLE_AUTO_CRAFT = config.get(CATEGORY_CROP, "enableAutoCraft", true).getBoolean(true);
+	        
 	        // Converter
 	        EntityJoinWorldHandler.convertNames = 
-	        		splitAndTrim(config.get(Configuration.CATEGORY_GENERAL, "AutoUnifyList", "ore.*").getString(), ",");
+	        		Misc.splitAndTrim(config.get(CATEGORY_UNIFY, "AutoUnifyList", "ore.*,").getString(), ",");
 	        
 	        // Register
 	        registerList = new ArrayList<RegisterItem>();
 	        
-	        Property propertyRegistValue = config.get(Configuration.CATEGORY_GENERAL, "OreDictRegisterValue", 0);
+	        Property propertyRegistValue = config.get(CATEGORY_REGISTER, "OreDictRegisterValue", 0);
 	        propertyRegistValue.comment = "Please increment this value, if you want to regist ore dictionary.";
 	        int registValue = propertyRegistValue.getInt();
 	        for(int i = 0; i < registValue; i++){
-	        	String categoryName = "RegisterItem" + (i + 1);
+	        	String categoryName = CATEGORY_REGISTER_ITEM + (i + 1);
 	        	// registerName
 	        	Property propertyRegisterName = config.get(categoryName, "Name", "");
 	        	propertyRegisterName.comment = "Please input ore dictionary name (ex. oreIron)";
@@ -55,43 +77,13 @@ public class AutoUnifier {
 	        	try{
 		        	registerList.add(new RegisterItem(
 		        			propertyRegisterName.getString(),
-		        			stringToInt(propertyRegisterId.getString(), ",", ":")));
+		        			Misc.stringToInt(propertyRegisterId.getString(), ",", ":")));
 	        	} catch(NumberFormatException ex) {}
 	        }
 	        
 	        config.save();
         }
         
-        private static String[] splitAndTrim(String str, String separator){
-	        String[] aaa = str.split(separator);
-	        String[] ids = new String[aaa.length];
-            for(int i = 0; i < aaa.length; i++){
-            	ids[i] = aaa[i].trim();
-            }
-            return ids;
-        }
-
-        private static int[] stringToInt(String str, String separator) throws NumberFormatException{
-	        String[] aaa = str.split(separator);
-	        int[] ids = new int[aaa.length];
-            for(int i = 0; i < aaa.length; i++){
-            	ids[i]= Integer.parseInt(aaa[i].trim());
-            }
-            return ids;
-        }
-        
-        private static int[][] stringToInt(String str, String separator1, String separator2) throws NumberFormatException{
-        	String[] aaa = str.split(separator1);
-        	int[][] ids = new int[aaa.length][];
-        	for(int i = 0; i < aaa.length; i++){
-        		int[] s = stringToInt(aaa[i], separator2);
-        		ids[i] = new int[2];
-        		ids[i][0] = s[0];
-        		ids[i][1] = (s.length >= 2) ? s[1] : 0;
-        	}
-        	return ids;
-        }
-       
         @EventHandler // used in 1.6.2
         //@PostInit   // used in 1.5.2
         public void postInit(FMLPostInitializationEvent event) {
@@ -100,6 +92,9 @@ public class AutoUnifier {
         @EventHandler // used in 1.6.2
         //@Init       // used in 1.5.2
         public void load(FMLInitializationEvent event) {
+        	// HarvestAssist
+            MinecraftForge.EVENT_BUS.register(new PlayerHarvestEventHandler());
+        	
         	// Unifier
         	MinecraftForge.EVENT_BUS.register(new EntityJoinWorldHandler());
         	

@@ -1,4 +1,4 @@
-package mariri.autounifier;
+package mariri.mcassistant.unify;
 
 public class RegisterItem {
 	private String name;
