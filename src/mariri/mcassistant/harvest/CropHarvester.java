@@ -131,8 +131,9 @@ public class CropHarvester extends Harvester {
 		}
 		
 		if(seed != null && block.blockID != world.getBlockId(target.x, target.y - 1, target.z)){
-			seed.stackSize--;
-			world.setBlock(target.x, target.y, target.z, block.blockID, 0, 4);
+//			seed.stackSize--;
+			seed.getItem().onItemUse(seed, player, world, target.x, target.y - 1, target.z, 1, 0, 0, 0);
+//			world.setBlock(target.x, target.y, target.z, block.blockID, 0, 4);
 //			world.setBlockMetadataWithNotify(target.x, target.y, target.z, 0, 4);
 			if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
 				player.destroyCurrentEquippedItem();

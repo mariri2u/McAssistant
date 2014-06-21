@@ -90,8 +90,8 @@ public class McAssistant {
 	        // RegisterItem
 	        Comparator.UNIFY.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "unifyOreDictionary", "ore.*,").getString(), ","));
 	        Comparator.ORE.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreNames", "").getString(), ","));
-	        Comparator.ORE.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreClasses", ".*BlockOre.*").getString(), ","));
-	        Comparator.ORE.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreOreDictionary", ".*ore.*").getString(), ","));
+	        Comparator.ORE.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreClasses", ".*BlockOre.*, .*BlockRedstoneOre.*, .*BlockGlowStone.*").getString(), ","));
+	        Comparator.ORE.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreOreDictionary", "ore.*").getString(), ","));
 	        Comparator.SHOVEL.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelNames", "").getString(), ","));
 	        Comparator.SHOVEL.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelClasses", ".*ItemSpade.*").getString(), ","));
 	        Comparator.SHOVEL.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelOreDictionary", "").getString(), ","));

@@ -114,7 +114,7 @@ public class PlayerHarvestEventHandler {
 //				// TODO 自動生成された catch ブロック
 //				e.printStackTrace();
 //			}
-			if(harvester.metadata == 0 && Comparator.CROP.compareBlock(harvester.block)){
+			if(harvester.metadata == 0 && harvester.block.idDropped(harvester.metadata,harvester.world.rand, 0) <= 0){
 				harvester.cancelHarvest();
 			}else{
 				harvester.harvestCrop();
