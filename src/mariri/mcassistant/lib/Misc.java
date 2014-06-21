@@ -1,5 +1,7 @@
 package mariri.mcassistant.lib;
 
+import java.util.List;
+
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.EnumToolMaterial;
@@ -38,13 +40,22 @@ public class Misc {
 		return m;
 	}
 	
+	public static int getPotionAffectedLevel(EntityLivingBase entity, int id){
+		int result = 0;;
+		PotionEffect effect = entity.getActivePotionEffect(Potion.potionTypes[id]);
+		if(effect != null){
+			result |= effect.getAmplifier() + 1;
+		}
+		return result;
+	}
+	
 	public static boolean isPotionAffected(EntityLivingBase entity, int id, int lv){
 		boolean result = false;;
 		PotionEffect effect = entity.getActivePotionEffect(Potion.potionTypes[id]);
 		if(lv <= 0){
 			result |= true;
-		}else if(effect != null){
-			result |= effect.getAmplifier() >= lv - 1;
+		}else{
+			result |= getPotionAffectedLevel(entity, id) >= lv;
 		}
 		return result;
 	}
@@ -66,6 +77,12 @@ public class Misc {
 	    		new EntityItem(world, (double)x + d0, (double)y + d1, (double)z + d2, itemstack);
 	    entityitem.delayBeforeCanPickup = 10;
 	    world.spawnEntityInWorld(entityitem);
+	}
+	
+	public static void spawnItem(World world, double x, double y, double z, List<ItemStack> itemstack){
+		for(ItemStack item : itemstack){
+			spawnItem(world, x, y, z, item);
+		}
 	}
 	
     public static String[] splitAndTrim(String str, String separator){

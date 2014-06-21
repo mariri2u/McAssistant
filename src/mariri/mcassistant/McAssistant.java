@@ -54,24 +54,33 @@ public class McAssistant {
 	        PlayerHarvestEventHandler.CUTDOWN_CHAIN = config.get(Configuration.CATEGORY_GENERAL, "cutdownChain", true).getBoolean(true);
 	        PlayerHarvestEventHandler.CUTDOWN_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "cutdownMaxDistance", 30).getInt();
 	        PlayerHarvestEventHandler.CUTDOWN_BELOW = config.get(Configuration.CATEGORY_GENERAL, "cutdownBelow", false).getBoolean(false);
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_POTION = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequirePotion", "3:1").getString(), ":");
+//	        PlayerHarvestEventHandler.CUTDOWN_REPLANT = config.get(Configuration.CATEGORY_GENERAL, "cutdownReplant", true).getBoolean(true);
+	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequirePotionLevel", "3:1").getString(), ":");
 	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_AFFECT_POTION = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainAffectPotion", "").getString(), ":");
 	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireHunger", 0).getInt();
 	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireToolLevel", 2).getInt();
 
 	        // CropHarvesterSetting
 	        PlayerHarvestEventHandler.CROPASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cropassistEnable", true).getBoolean(true);
-	        CropHarvester.CROP_ASSIST_SUPLY = config.get(Configuration.CATEGORY_GENERAL, "cropassistSuplyFromInventory", true).getBoolean(true);
-	        CropHarvester.CROP_ASSIST_AUTO_CRAFT = config.get(Configuration.CATEGORY_GENERAL, "cropassistAutoCraft", true).getBoolean(true);
+	        CropHarvester.CROPASSIST_SUPLY = config.get(Configuration.CATEGORY_GENERAL, "cropassistSuplyFromInventory", true).getBoolean(true);
+	        CropHarvester.CROPASSIST_AUTOCRAFT = config.get(Configuration.CATEGORY_GENERAL, "cropassistAutoCraft", true).getBoolean(true);
 
 	        // MineAssist
 	        PlayerHarvestEventHandler.MINEASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "mineassistEnable", true).getBoolean(true);
 	        PlayerHarvestEventHandler.MINEASSIST_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "mineassistMaxDistance", 10).getInt();
-	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_POTION = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequirePotion", "").getString(), ":");
+	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_POTION_LEVEL = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequirePotionLevel", "").getString(), ":");
 	        PlayerHarvestEventHandler.MINEASSIST_AFFECT_POTION = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistAffectPotion", "17:1:15").getString(), ":");
 	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireHunger", 15).getInt();
 	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireToolLevel", 2).getInt();
       
+	        // FlatAssist
+	        PlayerHarvestEventHandler.FLATASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnable", true).getBoolean(true);
+	        PlayerHarvestEventHandler.FLATASSIST_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistRequirePotionId", 3).getInt();
+	        PlayerHarvestEventHandler.FLATASSIST_AFFECT_POTION = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistAffectPotion", "").getString(), ":");
+	        PlayerHarvestEventHandler.FLATASSIST_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistRequireHunger", 0).getInt();
+	        PlayerHarvestEventHandler.FLATASSIST_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "flatassistRequireToolLevel", 2).getInt();
+	        PlayerHarvestEventHandler.FLATASSIST_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistBelow", false).getBoolean(false);
+
 	        // TorchAssist
 	        PlayerClickHandler.TORCHASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "torchassistEnable", true).getBoolean(true);
 
@@ -101,9 +110,18 @@ public class McAssistant {
 	        Comparator.AXE.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeNames", "").getString(), ","));
 	        Comparator.AXE.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeClasses", ".*ItemAxe.*").getString(), ","));
 	        Comparator.AXE.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeOreDictionarys", "").getString(), ","));
-	        Comparator.LOG.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logNames", "").getString(), ","));
+	        Comparator.LOG.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logNames", ".*[mM]ushroom.*").getString(), ","));
 	        Comparator.LOG.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logClasses", ".*[lL]og.*").getString(), ","));
 	        Comparator.LOG.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logOreDictionary", "logWood").getString(), ","));
+	        Comparator.DIRT.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtNames", "").getString(), ","));
+	        Comparator.DIRT.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtClasses", ".*[gG]rass.*, .*[dD]irt.*, .*[mM]ycelium.*, .*[sS]and, .*[cC]lay.*, .*[gG]ravel.*").getString(), ","));
+	        Comparator.DIRT.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtOreDictionary", "").getString(), ","));
+	        Comparator.STONE.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneNames", ".*[sS]tone.*, .*[bB]rick.*, .*[cC]lay.*").getString(), ","));
+	        Comparator.STONE.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneClasses", ".*[sS]tone.*, .*[nN]etherrack.*").getString(), ","));
+	        Comparator.STONE.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneOreDictionary", "").getString(), ","));
+//	        Comparator.SAPLING.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingNames", ".*[sS]apling.*").getString(), ","));
+//	        Comparator.SAPLING.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingClasses", ".*[sS]apling.*").getString(), ","));
+//	        Comparator.SAPLING.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingOreDictionary", "").getString(), ","));
 
 	        // RegisterOreDictionary
 	        registerList = new ArrayList<RegisterItem>();

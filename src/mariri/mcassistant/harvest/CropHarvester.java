@@ -16,8 +16,8 @@ import net.minecraft.world.World;
 
 public class CropHarvester extends Harvester {
 
-	public static boolean CROP_ASSIST_SUPLY = true;
-	public static boolean CROP_ASSIST_AUTO_CRAFT;
+	public static boolean CROPASSIST_SUPLY = true;
+	public static boolean CROPASSIST_AUTOCRAFT;
 	
 	
 	public CropHarvester(World world, EntityPlayer player, int x, int y, int z, Block block, int metadata, List<ItemStack> drops){
@@ -96,7 +96,7 @@ public class CropHarvester extends Harvester {
 			}
 		}
 		
-		if(CROP_ASSIST_AUTO_CRAFT && seed == null){
+		if(CROPASSIST_AUTOCRAFT && seed == null){
 			ItemStack product = null;
 			ItemStack material = null;
 			for(ItemStack m : drops){
@@ -109,21 +109,22 @@ public class CropHarvester extends Harvester {
 				}
 			}
 			if(product != null){
-				if(CROP_ASSIST_SUPLY && player.inventory.consumeInventoryItem(product.itemID)){
+				if(CROPASSIST_SUPLY && player.inventory.consumeInventoryItem(product.itemID)){
 					seed = new ItemStack(product.getItem(), 1);
 				}else if(product.stackSize == 1){
 					seed = product;
-					product.stackSize--;
+					material.stackSize--;
 				}else if(product.stackSize > 1){
 					seed = new ItemStack(product.getItem(), 1);
 					product.stackSize--;
+					material.stackSize--;
 					spawnItem(product);
 //						drops.add(product);
 				}
 			}
 		}
 		
-		if(seed == null && CROP_ASSIST_SUPLY){
+		if(seed == null && CROPASSIST_SUPLY){
 			if(block.equals(Block.crops) && player.inventory.consumeInventoryItem(Item.seeds.itemID)){
 				seed = new ItemStack(Item.seeds, 1);
 			}

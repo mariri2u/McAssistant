@@ -23,6 +23,9 @@ public class Comparator {
 	public static Comparator PICKAXE = new Comparator();
 	public static Comparator SHOVEL = new Comparator();
 	public static Comparator HOE = new Comparator();
+	public static Comparator DIRT = new Comparator();
+	public static Comparator STONE = new Comparator();
+//	public static Comparator SAPLING = new Comparator();
 	
 	protected Comparator(){
 	}
@@ -45,12 +48,12 @@ public class Comparator {
 		}
 	}
 	
-	public void registerOreDist(String s){
-		if(names == null){
-			names = new ArrayList<String>();
+	public void registerOreDict(String s){
+		if(oredicts == null){
+			oredicts = new ArrayList<String>();
 		}
 		if(!"".equals(s)){
-			names.add(s);
+			oredicts.add(s);
 		}
 	}
 	
@@ -73,7 +76,7 @@ public class Comparator {
 	public void registerOreDict(String[] arr){
 		if(arr != null){
 			for(String s : arr){
-				registerOreDist(s);
+				registerOreDict(s);
 			}
 		}
 	}

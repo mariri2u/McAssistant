@@ -3,7 +3,6 @@ package mariri.mcassistant.harvest;
 import mariri.mcassistant.lib.Comparator;
 import mariri.mcassistant.lib.Misc;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockFlower;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumToolMaterial;
 import net.minecraft.world.World;
@@ -15,18 +14,25 @@ public class PlayerHarvestEventHandler {
 	public static boolean CUTDOWN_ENABLE = true;
 	public static boolean CUTDOWN_CHAIN;
 	public static boolean CUTDOWN_BELOW;
+//	public static boolean CUTDOWN_REPLANT;
 	public static int CUTDOWN_MAX_DISTANCE;
-	public static int[] CUTDOWN_CHAIN_REQUIRE_POTION;
+	public static int[] CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL;
 	public static int[] CUTDOWN_CHAIN_AFFECT_POTION;
 	public static int CUTDOWN_CHAIN_REQUIRE_HUNGER;
 	public static int CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL;
 	public static boolean CROPASSIST_ENABLE = true;
 	public static boolean MINEASSIST_ENABLE = false;
 	public static int MINEASSIST_MAX_DISTANCE;
-	public static int[] MINEASSIST_REQUIRE_POTION;
+	public static int[] MINEASSIST_REQUIRE_POTION_LEVEL;
 	public static int[] MINEASSIST_AFFECT_POTION;
 	public static int MINEASSIST_REQUIRE_HUNGER;
 	public static int MINEASSIST_REQUIRE_TOOL_LEVEL;
+	public static boolean FLATASSIST_ENABLE;
+	public static int FLATASSIST_REQUIRE_POTION_ID;
+	public static int FLATASSIST_REQUIRE_TOOL_LEVEL;
+	public static int[] FLATASSIST_AFFECT_POTION;
+	public static int FLATASSIST_REQUIRE_HUNGER;
+	public static boolean FLATASSIST_BELOW;
 	
 	@ForgeSubscribe
 	public void onPlayerHarvestWoodWithAxe(BlockEvent.HarvestDropsEvent e){
@@ -39,12 +45,28 @@ public class PlayerHarvestEventHandler {
 		if(player != null && !player.isSneaking()){
 			if(CUTDOWN_ENABLE && isLog(block) && isAxe(player)){
 				EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, e.drops, CUTDOWN_BELOW, CUTDOWN_MAX_DISTANCE);
-				if(CUTDOWN_CHAIN && compareCurrentToolLevel(player, CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL) && Misc.isPotionAffected(player, CUTDOWN_CHAIN_REQUIRE_POTION) && player.getFoodStats().getFoodLevel() >= CUTDOWN_CHAIN_REQUIRE_HUNGER){
-					harvester.harvestChain(CUTDOWN_CHAIN_AFFECT_POTION);
+				if(CUTDOWN_CHAIN && compareCurrentToolLevel(player, CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL) &&
+						Misc.isPotionAffected(player, CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL) &&
+						player.getFoodStats().getFoodLevel() >= CUTDOWN_CHAIN_REQUIRE_HUNGER){
+					harvester.harvestChain(CUTDOWN_CHAIN_AFFECT_POTION, false);
 				}else{
 					harvester.harvestEdge();
 				}
 //				e.setCanceled(true);
+				
+//				int below = world.getBlockId(e.x, e.y - 1, e.z);
+//				if(CUTDOWN_REPLANT && (below == block.dirt.blockID || below == block.grass.blockID)){
+//					List<EntityItem> entityList = world.getEntitiesWithinAABB(EntityItem.class,
+//							AxisAlignedBB.getBoundingBox(e.x - 2, e.y - 1, e.z - 2, e.x + 3, e.y + CUTDOWN_MAX_DISTANCE, e.z + 3));
+//					for(EntityItem item : entityList){
+//						if(Comparator.SAPLING.compareItem(item.getEntityItem().getItem()) && world.isAirBlock(e.x, e.y, e.z)){
+//							ItemStack sap = item.getEntityItem();
+//							world.setBlock(x, y, z, sap.itemID, sap.getItemDamage(), 4);
+//							sap.stackSize--;
+//						}
+//					}
+//				}
+
 			}
 			if(CROPASSIST_ENABLE && isCrop(block) && isHoe(player)){
 //				player.inventory.consumeInventoryItem(Item.seeds.itemID);
@@ -57,9 +79,23 @@ public class PlayerHarvestEventHandler {
 //				}
 //				e.setCanceled(true);
 			}
-			if(MINEASSIST_ENABLE && compareCurrentToolLevel(player, MINEASSIST_REQUIRE_TOOL_LEVEL) && Misc.isPotionAffected(player, MINEASSIST_REQUIRE_POTION) && player.getFoodStats().getFoodLevel() >= MINEASSIST_REQUIRE_HUNGER && Comparator.ORE.compareBlock(block) && Comparator.PICKAXE.compareCurrentItem(player)){
+			if(MINEASSIST_ENABLE && compareCurrentToolLevel(player, MINEASSIST_REQUIRE_TOOL_LEVEL) &&
+					Misc.isPotionAffected(player, MINEASSIST_REQUIRE_POTION_LEVEL) &&
+					player.getFoodStats().getFoodLevel() >= MINEASSIST_REQUIRE_HUNGER &&
+					Comparator.ORE.compareBlock(block) && Comparator.PICKAXE.compareCurrentItem(player)){
 				EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, e.drops, true, MINEASSIST_MAX_DISTANCE);
-				int count = harvester.harvestChain(MINEASSIST_AFFECT_POTION);
+				harvester.harvestChain(MINEASSIST_AFFECT_POTION, false);
+//				e.setCanceled(true);
+			}
+			if(FLATASSIST_ENABLE && compareCurrentToolLevel(player, FLATASSIST_REQUIRE_TOOL_LEVEL) &&
+					player.getFoodStats().getFoodLevel() >= FLATASSIST_REQUIRE_HUNGER &&
+					((Comparator.DIRT.compareBlock(block) && Comparator.SHOVEL.compareCurrentItem(player)) ||
+					(Comparator.STONE.compareBlock(block) && Comparator.PICKAXE.compareCurrentItem(player)))){
+				int distance = Misc.getPotionAffectedLevel(player, FLATASSIST_REQUIRE_POTION_ID);
+				if(distance > 0){
+					EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, e.drops, FLATASSIST_BELOW, distance);
+					harvester.harvestChain(FLATASSIST_AFFECT_POTION, true);
+				}
 //				e.setCanceled(true);
 			}
 		}
@@ -78,7 +114,7 @@ public class PlayerHarvestEventHandler {
 //				// TODO 自動生成された catch ブロック
 //				e.printStackTrace();
 //			}
-			if(harvester.metadata == 0 && harvester.block instanceof BlockFlower){
+			if(harvester.metadata == 0 && Comparator.CROP.compareBlock(harvester.block)){
 				harvester.cancelHarvest();
 			}else{
 				harvester.harvestCrop();
@@ -88,12 +124,10 @@ public class PlayerHarvestEventHandler {
 	
 	private boolean compareCurrentToolLevel(EntityPlayer player, int level){
 		boolean result = false;
-		if(player.getCurrentEquippedItem() == null){
-			
-		}else{
+		try{
 			EnumToolMaterial material = Misc.getMaterial(player.getCurrentEquippedItem().getItem());
 			result = material.getHarvestLevel() >= level;
-		}
+		}catch(NullPointerException e){}
 		return result;
 	}
 		

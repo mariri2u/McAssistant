@@ -29,25 +29,29 @@ public class EdgeHarvester extends Harvester {
 		this.count = 0;
 	}
 	
-	private int getDistance(Coord c){
-		return getDistance(c.x, c.y, c.z);
+	private int getDistance(Coord c, boolean square){
+		return getDistance(c.x, c.y, c.z, square);
 	}
 	
-	private int getDistance(int x, int y, int z){
-		return Math.abs(x - target.x) + Math.abs(y - target.y) + Math.abs(z - target.z);  
+	private int getDistance(int x, int y, int z, boolean square){
+		if(square){
+			return Math.max(Math.abs(x - target.x), Math.max(Math.abs(y - target.y), Math.abs(z - target.z)));
+		}else{
+			return Math.abs(x - target.x) + Math.abs(y - target.y) + Math.abs(z - target.z);
+		}
 	}
 	
-	private void debugOutput(String prefix, Coord c, String sufix){
-		System.out.println(prefix + " (" + c.x + ", " + c.y + ", " + c.z + ") " + sufix);
-	}
+//	private void debugOutput(String prefix, Coord c, String sufix){
+//		System.out.println(prefix + " (" + c.x + ", " + c.y + ", " + c.z + ") " + sufix);
+//	}
 	
 	public int harvestChain(){
-		return harvestChain(null);
+		return harvestChain(null, false);
 	}
 	
-	public int harvestChain(int[] potion){
+	public int harvestChain(int[] potion, boolean square){
 //		boolean hasItem = true;
-		while(player.inventory.getCurrentItem() != null && findEdge() >= 0){
+		while(player.inventory.getCurrentItem() != null && findEdge(square) >= 0){
 			harvestEdge();
 			if(player.inventory.getCurrentItem() != null && player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
 				player.destroyCurrentEquippedItem();
@@ -66,12 +70,16 @@ public class EdgeHarvester extends Harvester {
 		return count;
 	}
 	
-	public int findEdge(){
+//	public int findEdge(){
+//		return findEdge(false);
+//	}
+//	
+	public int findEdge(boolean square){
 		if(edge == null){
 			edge = new Coord(target.x, target.y, target.z);
 //			debugOutput("Target", edge, "");
 		}
-		int dist = getDistance(edge);
+		int dist = getDistance(edge, square);
 		if(block.blockID != world.getBlockId(target.x, target.y, target.z)){
 			dist = -1;
 		}
@@ -85,17 +93,18 @@ public class EdgeHarvester extends Harvester {
 			for(int y = prev.y + 1; y >= prev.y - 1; y--){
 				for(int z = prev.z - 1; z <= prev.z + 1; z++){
 //					debugOutput("Current", new Coord(x, y, z), "Dist: " + getDistance(x, y, z));
-					if((below ? true : y >= target.y) && world.getBlockId(x, y, z) == block.blockID && dist < getDistance(x, y, z)){
+					int d = getDistance(x, y, z, square);
+					if((below ? true : y >= target.y) && world.getBlockId(x, y, z) == block.blockID && dist <= d && d <= maxDist){
 						edge.x = x;
 						edge.y = y;
 						edge.z = z;
-						dist = getDistance(x, y, z);
+						dist = d;
 					}
 				}
 			}
 		}
 		if(!(edge.x == prev.x && edge.y == prev.y && edge.z == prev.z) && dist <= maxDist){
-			findEdge();
+			findEdge(square);
 		}
 		return dist;
 	}
@@ -103,7 +112,7 @@ public class EdgeHarvester extends Harvester {
 	public void harvestEdge(){
 //		block.dropBlockAsItem(world, edge.x, edge.y, edge.z, metadata, 0);
 		if(edge == null){
-			findEdge();
+			findEdge(false);
 		}
 		if(count > 0){
 //			block.harvestBlock(world, player, edge.x, edge.y, edge.z, metadata);
@@ -127,11 +136,13 @@ public class EdgeHarvester extends Harvester {
 //					}
 //				}
 //			}
+			world.setBlockToAir(edge.x, edge.y, edge.z);
 			if(silktouch && block.canSilkHarvest(world, player, edge.x, edge.y, edge.z, metadata)){
-				world.setBlockToAir(edge.x, edge.y, edge.z);
 				Misc.spawnItem(world, edge.x, edge.y, edge.z, new ItemStack(block.blockID, 1, metadata));
 			}else{
-				block.dropBlockAsItem(world, edge.x, edge.y, edge.z, metadata, fortune);
+				Misc.spawnItem(world, edge.x, edge.y, edge.z, block.getBlockDropped(world, edge.x, edge.y, edge.z, metadata, fortune));
+				
+//				block.dropBlockAsItem(world, edge.x, edge.y, edge.z, metadata, fortune);
 			}
 		}else{
 			world.setBlock(target.x, target.y, target.z, block.blockID, metadata, 4);
