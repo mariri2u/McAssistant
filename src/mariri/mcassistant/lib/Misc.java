@@ -1,8 +1,15 @@
 package mariri.mcassistant.lib;
 
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.EnumToolMaterial;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.item.ItemTool;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 
 public class Misc {
@@ -15,6 +22,39 @@ public class Misc {
 			}
 		}
 		return mm;
+	}
+	
+	public static EnumToolMaterial getMaterial(Item item){
+		EnumToolMaterial m = null;
+		if(item == null){
+			
+		}else if(item instanceof ItemTool){
+			m = getMaterial(((ItemTool)item).getToolMaterialName());
+		}else if(item instanceof ItemHoe){
+			m = getMaterial(((ItemHoe)item).getMaterialName());
+		}else if(item instanceof ItemSword){
+			m = getMaterial(((ItemSword)item).getToolMaterialName());
+		}
+		return m;
+	}
+	
+	public static boolean isPotionAffected(EntityLivingBase entity, int id, int lv){
+		boolean result = false;;
+		PotionEffect effect = entity.getActivePotionEffect(Potion.potionTypes[id]);
+		if(lv <= 0){
+			result |= true;
+		}else if(effect != null){
+			result |= effect.getAmplifier() >= lv - 1;
+		}
+		return result;
+	}
+	
+	public static boolean isPotionAffected(EntityLivingBase entity, int[] pot){
+		if(pot != null && pot.length == 2){
+			return isPotionAffected(entity, pot[0], pot[1]);
+		}else{
+			return true;
+		}
 	}
 	
 	public static void spawnItem(World world, double x, double y, double z, ItemStack itemstack){
@@ -31,8 +71,12 @@ public class Misc {
     public static String[] splitAndTrim(String str, String separator){
         String[] aaa = str.split(separator);
         String[] ids = new String[aaa.length];
-        for(int i = 0; i < aaa.length; i++){
-        	ids[i] = aaa[i].trim();
+        if("".equals(str)){
+        	ids = null;
+        }else{
+	        for(int i = 0; i < aaa.length; i++){
+	        	ids[i] = aaa[i].trim();
+	        }
         }
         return ids;
     }
@@ -40,8 +84,12 @@ public class Misc {
     public static int[] stringToInt(String str, String separator) throws NumberFormatException{
         String[] aaa = str.split(separator);
         int[] ids = new int[aaa.length];
-        for(int i = 0; i < aaa.length; i++){
-        	ids[i]= Integer.parseInt(aaa[i].trim());
+        if("".equals(str)){
+        	ids = null;
+        }else{
+	        for(int i = 0; i < aaa.length; i++){
+	        	ids[i]= Integer.parseInt(aaa[i].trim());
+	        }
         }
         return ids;
     }
@@ -49,12 +97,16 @@ public class Misc {
     public static int[][] stringToInt(String str, String separator1, String separator2) throws NumberFormatException{
     	String[] aaa = str.split(separator1);
     	int[][] ids = new int[aaa.length][];
-    	for(int i = 0; i < aaa.length; i++){
-    		int[] s = stringToInt(aaa[i], separator2);
-    		ids[i] = new int[2];
-    		ids[i][0] = s[0];
-    		ids[i][1] = (s.length >= 2) ? s[1] : 0;
-    	}
+        if("".equals(str)){
+        	ids = null;
+        }else{
+	        for(int i = 0; i < aaa.length; i++){
+	    		int[] s = stringToInt(aaa[i], separator2);
+	    		ids[i] = new int[2];
+	    		ids[i][0] = s[0];
+	    		ids[i][1] = (s.length >= 2) ? s[1] : 0;
+	    	}
+        }
     	return ids;
     }
 }
