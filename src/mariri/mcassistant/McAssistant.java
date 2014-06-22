@@ -3,13 +3,13 @@ package mariri.mcassistant;
 import java.util.ArrayList;
 import java.util.List;
 
-import mariri.mcassistant.harvest.CropHarvester;
-import mariri.mcassistant.harvest.PlayerHarvestEventHandler;
-import mariri.mcassistant.lib.Comparator;
-import mariri.mcassistant.lib.Misc;
-import mariri.mcassistant.torch.PlayerClickHandler;
-import mariri.mcassistant.unify.EntityJoinWorldHandler;
-import mariri.mcassistant.unify.RegisterItem;
+import mariri.mcassistant.handler.EntityJoinWorldHandler;
+import mariri.mcassistant.handler.PlayerClickHandler;
+import mariri.mcassistant.handler.PlayerHarvestEventHandler;
+import mariri.mcassistant.harvester.CropHarvester;
+import mariri.mcassistant.misc.Comparator;
+import mariri.mcassistant.misc.Lib;
+import mariri.mcassistant.misc.RegisterItem;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
@@ -24,7 +24,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 
 
-@Mod(modid="McAssistant", name="McAssistant", version="1.6.4-0.2", dependencies = "")
+@Mod(modid="McAssistant", name="McAssistant", version="1.6.4-0.3", dependencies = "")
 @NetworkMod(clientSideRequired=false)
 public class McAssistant {
 
@@ -34,11 +34,6 @@ public class McAssistant {
         
         private static List<RegisterItem> registerList;
         
-//        private static final String CATEGORY_TREE = "CutdownTree";
-//        private static final String CATEGORY_CROP = "AutoReplant";
-//        private static final String CATEGORY_TORCH = "AutoTorch";
-//        private static final String CATEGORY_UNIFY = "AutoUnify";
-//        private static final String CATEGORY_CHAIN_ORE = "ChainOre";
         private static final String CATEGORY_REGISTER = "OreDictionaryRegister.general";
         private static final String CATEGORY_REGISTER_ITEM = "OreDictionaryRegister.RegisterItem";
         private static final String CATEGORY_ITEM_REGISTER = "ItemRegister";
@@ -55,31 +50,34 @@ public class McAssistant {
 	        PlayerHarvestEventHandler.CUTDOWN_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "cutdownMaxDistance", 30).getInt();
 	        PlayerHarvestEventHandler.CUTDOWN_BELOW = config.get(Configuration.CATEGORY_GENERAL, "cutdownBelow", false).getBoolean(false);
 //	        PlayerHarvestEventHandler.CUTDOWN_REPLANT = config.get(Configuration.CATEGORY_GENERAL, "cutdownReplant", true).getBoolean(true);
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequirePotionLevel", "3:1").getString(), ":");
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_AFFECT_POTION = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainAffectPotion", "").getString(), ":");
+	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequirePotionLevel", "3:1").getString(), ":");
+	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainAffectPotion", "").getString(), ":");
 	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireHunger", 0).getInt();
 	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireToolLevel", 2).getInt();
 
 	        // CropHarvesterSetting
 	        PlayerHarvestEventHandler.CROPASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cropassistEnable", true).getBoolean(true);
+	        PlayerHarvestEventHandler.CROPASSIST_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cropassistRequireToolLevel", 0).getInt();
 	        CropHarvester.CROPASSIST_SUPLY = config.get(Configuration.CATEGORY_GENERAL, "cropassistSuplyFromInventory", true).getBoolean(true);
 	        CropHarvester.CROPASSIST_AUTOCRAFT = config.get(Configuration.CATEGORY_GENERAL, "cropassistAutoCraft", true).getBoolean(true);
 
 	        // MineAssist
 	        PlayerHarvestEventHandler.MINEASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "mineassistEnable", true).getBoolean(true);
 	        PlayerHarvestEventHandler.MINEASSIST_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "mineassistMaxDistance", 10).getInt();
-	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_POTION_LEVEL = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequirePotionLevel", "").getString(), ":");
-	        PlayerHarvestEventHandler.MINEASSIST_AFFECT_POTION = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistAffectPotion", "17:1:15").getString(), ":");
+	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_POTION_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequirePotionLevel", "").getString(), ":");
+	        PlayerHarvestEventHandler.MINEASSIST_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistAffectPotion", "17:1:15").getString(), ":");
 	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireHunger", 15).getInt();
 	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireToolLevel", 2).getInt();
       
 	        // FlatAssist
 	        PlayerHarvestEventHandler.FLATASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnable", true).getBoolean(true);
 	        PlayerHarvestEventHandler.FLATASSIST_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistRequirePotionId", 3).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_AFFECT_POTION = Misc.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistAffectPotion", "").getString(), ":");
+	        PlayerHarvestEventHandler.FLATASSIST_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistAffectPotion", "").getString(), ":");
 	        PlayerHarvestEventHandler.FLATASSIST_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistRequireHunger", 0).getInt();
 	        PlayerHarvestEventHandler.FLATASSIST_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "flatassistRequireToolLevel", 2).getInt();
 	        PlayerHarvestEventHandler.FLATASSIST_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistBelow", false).getBoolean(false);
+	        PlayerHarvestEventHandler.FLATASSIST_ENABLE_DIRT = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnableDirt", true).getBoolean(true);
+	        PlayerHarvestEventHandler.FLATASSIST_ENABLE_STONE = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnableStone", true).getBoolean(true);
 
 	        // TorchAssist
 	        PlayerClickHandler.TORCHASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "torchassistEnable", true).getBoolean(true);
@@ -88,37 +86,37 @@ public class McAssistant {
 	        EntityJoinWorldHandler.UNIFY_ENEBLE = config.get(Configuration.CATEGORY_GENERAL, "autounifyEnable", true).getBoolean(true);
 	        
 	        // RegisterItem
-	        Comparator.UNIFY.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "unifyOreDictionary", "ore.*,").getString(), ","));
-	        Comparator.ORE.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreNames", "").getString(), ","));
-	        Comparator.ORE.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreClasses", ".*BlockOre.*, .*BlockRedstoneOre.*, .*BlockGlowStone.*").getString(), ","));
-	        Comparator.ORE.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreOreDictionary", "ore.*").getString(), ","));
-	        Comparator.SHOVEL.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelNames", "").getString(), ","));
-	        Comparator.SHOVEL.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelClasses", ".*ItemSpade.*").getString(), ","));
-	        Comparator.SHOVEL.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelOreDictionary", "").getString(), ","));
-	        Comparator.PICKAXE.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "pickaxeNames", "").getString(), ","));
-	        Comparator.PICKAXE.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "pickaxeClasses", ".*ItemPickaxe.*").getString(), ","));
-	        Comparator.PICKAXE.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "pickaxeOreDictionary", "").getString(), ","));
-	        Comparator.HOE.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeNames", "").getString(), ","));
-	        Comparator.HOE.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeClasses", ".*ItemHoe.*").getString(), ","));
-	        Comparator.HOE.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeNames", "").getString(), ","));
-	        Comparator.SEED.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedNames", ".*[sS]eed.*").getString(), ","));
-	        Comparator.SEED.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedClasses", ".*IPlantable.*, .*[sS]eed.*").getString(), ","));
-	        Comparator.SEED.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedOreDictionary", "").getString(), ","));
-	        Comparator.CROP.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropNames", ".*[cC]rop.*").getString(), ","));
-	        Comparator.CROP.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropClasses", ".*[cC]rop.*, .*[fF]lower.*").getString(), ","));
-	        Comparator.CROP.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropOreDictionary", "").getString(), ","));
-	        Comparator.AXE.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeNames", "").getString(), ","));
-	        Comparator.AXE.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeClasses", ".*ItemAxe.*").getString(), ","));
-	        Comparator.AXE.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeOreDictionarys", "").getString(), ","));
-	        Comparator.LOG.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logNames", ".*[mM]ushroom.*").getString(), ","));
-	        Comparator.LOG.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logClasses", ".*[lL]og.*").getString(), ","));
-	        Comparator.LOG.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logOreDictionary", "logWood").getString(), ","));
-	        Comparator.DIRT.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtNames", "").getString(), ","));
-	        Comparator.DIRT.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtClasses", ".*[gG]rass.*, .*[dD]irt.*, .*[mM]ycelium.*, .*[sS]and, .*[cC]lay.*, .*[gG]ravel.*").getString(), ","));
-	        Comparator.DIRT.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtOreDictionary", "").getString(), ","));
-	        Comparator.STONE.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneNames", ".*[sS]tone.*, .*[bB]rick.*, .*[cC]lay.*").getString(), ","));
-	        Comparator.STONE.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneClasses", ".*[sS]tone.*, .*[nN]etherrack.*").getString(), ","));
-	        Comparator.STONE.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneOreDictionary", "").getString(), ","));
+	        Comparator.UNIFY.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "unifyOreDictionary", "ore.*,").getString(), ","));
+	        Comparator.ORE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreNames", "").getString(), ","));
+	        Comparator.ORE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreClasses", ".*BlockOre.*, .*BlockRedstoneOre.*, .*BlockGlowStone.*").getString(), ","));
+	        Comparator.ORE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreOreDictionary", "ore.*").getString(), ","));
+	        Comparator.SHOVEL.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelNames", "").getString(), ","));
+	        Comparator.SHOVEL.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelClasses", ".*ItemSpade.*").getString(), ","));
+	        Comparator.SHOVEL.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelOreDictionary", "").getString(), ","));
+	        Comparator.PICKAXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "pickaxeNames", "").getString(), ","));
+	        Comparator.PICKAXE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "pickaxeClasses", ".*ItemPickaxe.*").getString(), ","));
+	        Comparator.PICKAXE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "pickaxeOreDictionary", "").getString(), ","));
+	        Comparator.HOE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeNames", "").getString(), ","));
+	        Comparator.HOE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeClasses", ".*ItemHoe.*").getString(), ","));
+	        Comparator.HOE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeNames", "").getString(), ","));
+	        Comparator.SEED.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedNames", ".*[sS]eed.*").getString(), ","));
+	        Comparator.SEED.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedClasses", ".*IPlantable.*, .*[sS]eed.*").getString(), ","));
+	        Comparator.SEED.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedOreDictionary", "").getString(), ","));
+	        Comparator.CROP.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropNames", ".*[cC]rop.*").getString(), ","));
+	        Comparator.CROP.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropClasses", ".*[cC]rop.*, .*[fF]lower.*").getString(), ","));
+	        Comparator.CROP.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropOreDictionary", "").getString(), ","));
+	        Comparator.AXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeNames", "").getString(), ","));
+	        Comparator.AXE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeClasses", ".*ItemAxe.*").getString(), ","));
+	        Comparator.AXE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeOreDictionarys", "").getString(), ","));
+	        Comparator.LOG.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logNames", ".*[mM]ushroom.*").getString(), ","));
+	        Comparator.LOG.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logClasses", ".*[lL]og.*").getString(), ","));
+	        Comparator.LOG.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logOreDictionary", "logWood").getString(), ","));
+	        Comparator.DIRT.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtNames", "").getString(), ","));
+	        Comparator.DIRT.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtClasses", ".*[gG]rass.*, .*[dD]irt.*, .*[mM]ycelium.*, .*[sS]and, .*[cC]lay.*, .*[gG]ravel.*").getString(), ","));
+	        Comparator.DIRT.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtOreDictionary", "").getString(), ","));
+	        Comparator.STONE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneNames", ".*[sS]tone.*, .*[bB]rick.*, .*[cC]lay.*").getString(), ","));
+	        Comparator.STONE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneClasses", ".*[sS]tone.*, .*[nN]etherrack.*").getString(), ","));
+	        Comparator.STONE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneOreDictionary", "").getString(), ","));
 //	        Comparator.SAPLING.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingNames", ".*[sS]apling.*").getString(), ","));
 //	        Comparator.SAPLING.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingClasses", ".*[sS]apling.*").getString(), ","));
 //	        Comparator.SAPLING.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingOreDictionary", "").getString(), ","));
@@ -141,7 +139,7 @@ public class McAssistant {
 	        	try{
 		        	registerList.add(new RegisterItem(
 		        			propertyRegisterName.getString(),
-		        			Misc.stringToInt(propertyRegisterId.getString(), ",", ":")));
+		        			Lib.stringToInt(propertyRegisterId.getString(), ",", ":")));
 	        	} catch(NumberFormatException ex) {}
 	        }
 	        

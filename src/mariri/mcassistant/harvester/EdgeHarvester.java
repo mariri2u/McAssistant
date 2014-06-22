@@ -1,8 +1,8 @@
-package mariri.mcassistant.harvest;
+package mariri.mcassistant.harvester;
 
 import java.util.List;
 
-import mariri.mcassistant.lib.Misc;
+import mariri.mcassistant.misc.Lib;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.EntityPlayer;
@@ -18,6 +18,7 @@ public class EdgeHarvester extends Harvester {
 	private int count;
 	private boolean below;
 	private int maxDist;
+	private ItemStack[] identifies;
 	
 //	public static int MAX_DISTANCE = 30;
 //	public static boolean HARVEST_BELOW = false;
@@ -27,6 +28,10 @@ public class EdgeHarvester extends Harvester {
 		this.below = below;
 		this.maxDist = dist;
 		this.count = 0;
+	}
+	
+	public void setIdentifyBlocks(ItemStack[] blocks){
+		identifies = blocks;
 	}
 	
 	private int getDistance(Coord c, boolean square){
@@ -94,7 +99,7 @@ public class EdgeHarvester extends Harvester {
 				for(int z = prev.z - 1; z <= prev.z + 1; z++){
 //					debugOutput("Current", new Coord(x, y, z), "Dist: " + getDistance(x, y, z));
 					int d = getDistance(x, y, z, square);
-					if((below ? true : y >= target.y) && world.getBlockId(x, y, z) == block.blockID && dist <= d && d <= maxDist){
+					if((below ? true : y >= target.y) && matchBlock(x, y, z) && dist <= d && d <= maxDist){
 						edge.x = x;
 						edge.y = y;
 						edge.z = z;
@@ -108,6 +113,25 @@ public class EdgeHarvester extends Harvester {
 		}
 		return dist;
 	}
+	
+	private boolean matchBlock(int x, int y, int z){
+		boolean result = false;
+		result |= matchBlock(x, y, z, block.blockID, metadata);
+		if(identifies != null){
+			for(ItemStack identify : identifies){
+				result |= matchBlock(x, y, z, identify.getItem().itemID, identify.getItemDamage());
+			}
+		}
+		return result;
+	}
+	
+	private boolean matchBlock(int x, int y, int z, int id, int meta){
+		boolean result = false;
+		result |= world.getBlockId(x, y, z) == id;
+		result &= world.getBlockMetadata(x, y, z) == meta;
+		return result;
+	}
+
 	
 	public void harvestEdge(){
 //		block.dropBlockAsItem(world, edge.x, edge.y, edge.z, metadata, 0);
@@ -138,9 +162,9 @@ public class EdgeHarvester extends Harvester {
 //			}
 			world.setBlockToAir(edge.x, edge.y, edge.z);
 			if(silktouch && block.canSilkHarvest(world, player, edge.x, edge.y, edge.z, metadata)){
-				Misc.spawnItem(world, edge.x, edge.y, edge.z, new ItemStack(block.blockID, 1, metadata));
+				Lib.spawnItem(world, edge.x, edge.y, edge.z, new ItemStack(block.blockID, 1, metadata));
 			}else{
-				Misc.spawnItem(world, edge.x, edge.y, edge.z, block.getBlockDropped(world, edge.x, edge.y, edge.z, metadata, fortune));
+				Lib.spawnItem(world, edge.x, edge.y, edge.z, block.getBlockDropped(world, edge.x, edge.y, edge.z, metadata, fortune));
 				
 //				block.dropBlockAsItem(world, edge.x, edge.y, edge.z, metadata, fortune);
 			}

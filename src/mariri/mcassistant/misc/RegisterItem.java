@@ -1,4 +1,4 @@
-package mariri.mcassistant.unify;
+package mariri.mcassistant.misc;
 
 public class RegisterItem {
 	private String name;

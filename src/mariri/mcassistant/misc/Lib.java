@@ -1,4 +1,4 @@
-package mariri.mcassistant.lib;
+package mariri.mcassistant.misc;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 
-public class Misc {
+public class Lib {
 	public static EnumToolMaterial getMaterial(String material){
 		EnumToolMaterial[] marr = EnumToolMaterial.values();
 		EnumToolMaterial mm = null;
@@ -28,14 +28,14 @@ public class Misc {
 	
 	public static EnumToolMaterial getMaterial(Item item){
 		EnumToolMaterial m = null;
-		if(item == null){
-			
-		}else if(item instanceof ItemTool){
-			m = getMaterial(((ItemTool)item).getToolMaterialName());
-		}else if(item instanceof ItemHoe){
-			m = getMaterial(((ItemHoe)item).getMaterialName());
-		}else if(item instanceof ItemSword){
-			m = getMaterial(((ItemSword)item).getToolMaterialName());
+		if(item != null){
+			if(item instanceof ItemTool){
+				m = getMaterial(((ItemTool)item).getToolMaterialName());
+			}else if(item instanceof ItemHoe){
+				m = getMaterial(((ItemHoe)item).getMaterialName());
+			}else if(item instanceof ItemSword){
+				m = getMaterial(((ItemSword)item).getToolMaterialName());
+			}
 		}
 		return m;
 	}

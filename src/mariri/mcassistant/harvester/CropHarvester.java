@@ -1,9 +1,9 @@
-package mariri.mcassistant.harvest;
+package mariri.mcassistant.harvester;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import mariri.mcassistant.lib.Comparator;
+import mariri.mcassistant.misc.Comparator;
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -25,26 +25,14 @@ public class CropHarvester extends Harvester {
 	}
 	
 	public void cancelHarvest(){
+		// ドロップアイテムがある場合削除
 		for(ItemStack drop : drops){
 			drop.stackSize = 0;
 		}
-//		List entityList = world.loadedEntityList;
 
 		EntityItem entity = null;
-//		for(Object e : entityList){
-//			if(e instanceof EntityItem){
-//				EntityItem ee = (EntityItem)e;
-//				if(		(target.x - 3 <= ee.posX &&  ee.posX <= target.x + 3) &&
-//						(target.y - 2 <= ee.posY &&  ee.posY <= target.y + 2) &&
-//						(target.z - 3 <= ee.posZ &&  ee.posZ <= target.z + 3) &&
-//						isSeed(ee.getEntityItem().getItem())){
-//					entity = ee;
-//				}
-//			}
-//		}
-
-		
-		List<EntityItem> entityList = world.getEntitiesWithinAABB(EntityItem.class,
+		List<EntityItem> entityList =
+				world.getEntitiesWithinAABB(EntityItem.class,
 				AxisAlignedBB.getBoundingBox(target.x - 1, target.y - 1, target.z - 1, target.x + 2, target.y + 2, target.z + 2));
 		for(EntityItem item : entityList){
 			if(isSeed(item.getEntityItem().getItem())){
@@ -55,6 +43,8 @@ public class CropHarvester extends Harvester {
 		if(entity != null){
 			((EntityItem)entity).setDead();
 		}
+		
+		// 植え直し
 		world.setBlock(target.x, target.y, target.z, block.blockID, 0, 4);
 	}
 	
@@ -66,26 +56,11 @@ public class CropHarvester extends Harvester {
 		if(this.drops.size() == 0){
 //			block.dropBlockAsItem(world, target.x, target.y, target.z, metadata, 0);
 			drops = new ArrayList<ItemStack>();
-//			List entityList = world.loadedEntityList;
 			List<EntityItem> entityList = world.getEntitiesWithinAABB(EntityItem.class,
 					AxisAlignedBB.getBoundingBox(target.x - 1, target.y - 1, target.z - 1, target.x + 2, target.y + 2, target.z + 2));
 			for(EntityItem item : entityList){
 				drops.add(item.getEntityItem());
 			}
-
-//			for(Object obj : entityList){
-//				if(obj instanceof EntityItem){
-//					EntityItem entity = (EntityItem)obj;
-//					System.out.println("Target: " + target.x + ", " + target.y + ", " + target.z);
-//					System.out.println("Entity: " + entity.posX + ", " + entity.posY + ", " + entity.posZ);
-//					if( (target.x - 3 <= entity.posX &&  entity.posX <= target.x + 3) &&
-//						(target.y - 2 <= entity.posY &&  entity.posY <= target.y + 2) &&
-//						(target.z - 3 <= entity.posZ &&  entity.posZ <= target.z + 3) ){
-//						EntityItem item = (EntityItem)entity;
-//						drops.add(item.getEntityItem());
-//					}
-//				}
-//			}
 		}else{
 			drops = this.drops;
 		}
@@ -119,7 +94,7 @@ public class CropHarvester extends Harvester {
 					product.stackSize--;
 					material.stackSize--;
 					spawnItem(product);
-//						drops.add(product);
+//					drops.add(product);
 				}
 			}
 		}
@@ -130,13 +105,14 @@ public class CropHarvester extends Harvester {
 			}
 		}
 		
-		if(seed != null && block.blockID != world.getBlockId(target.x, target.y - 1, target.z)){
+//		if(seed != null && block.blockID != world.getBlockId(target.x, target.y - 1, target.z)){
+		if(seed != null){
 //			seed.stackSize--;
-			seed.getItem().onItemUse(seed, player, world, target.x, target.y - 1, target.z, 1, 0, 0, 0);
-//			world.setBlock(target.x, target.y, target.z, block.blockID, 0, 4);
-//			world.setBlockMetadataWithNotify(target.x, target.y, target.z, 0, 4);
-			if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
-				player.destroyCurrentEquippedItem();
+			// 植え直しできた場合
+			if(seed.getItem().onItemUse(seed, player, world, target.x, target.y - 1, target.z, 1, 0, 0, 0)){
+				if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
+					player.destroyCurrentEquippedItem();
+				}
 			}
 //		}else{
 //			world.setBlockToAir(target.x, target.y, target.z);
@@ -149,18 +125,5 @@ public class CropHarvester extends Harvester {
 	
 	private static boolean isSeed(Item item){
 		return Comparator.SEED.compareItem(item);
-//		boolean result = false;
-//		result |= item instanceof IPlantable;
-//		result |= item instanceof ItemSeeds;
-//		result |= item instanceof ItemSeedFood;
-//		String regex = ".*[sS]eed.*";
-//		result |= item.getUnlocalizedName().matches(regex);
-//		Class clazz = item.getClass();
-//		while(clazz != null){
-//			result |= clazz.getCanonicalName().matches(regex);
-//			clazz = clazz.getSuperclass();
-//		}
-//		
-//		return result;
 	}
 }

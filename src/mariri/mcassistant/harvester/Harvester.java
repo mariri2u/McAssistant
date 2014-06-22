@@ -1,8 +1,8 @@
-package mariri.mcassistant.harvest;
+package mariri.mcassistant.harvester;
 
 import java.util.List;
 
-import mariri.mcassistant.lib.Misc;
+import mariri.mcassistant.misc.Lib;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -42,6 +42,6 @@ public class Harvester {
 	}
 	
 	protected void spawnItem(ItemStack itemstack){
-		Misc.spawnItem(world, target.x, target.y, target.z, itemstack);
+		Lib.spawnItem(world, target.x, target.y, target.z, itemstack);
 	}
 }

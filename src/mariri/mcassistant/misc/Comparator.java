@@ -1,4 +1,4 @@
-package mariri.mcassistant.lib;
+package mariri.mcassistant.misc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +81,7 @@ public class Comparator {
 		}
 	}
 	
+	//
 	private boolean compareClass(Object obj){
 		boolean result = false;
 		try{
@@ -137,6 +138,7 @@ public class Comparator {
 		return result;
 	}
 	
+	//
 	public boolean compareBlock(Block b){
 		return compareName(b) || compareClass(b) || compareOreDict(new ItemStack(b));
 	}
