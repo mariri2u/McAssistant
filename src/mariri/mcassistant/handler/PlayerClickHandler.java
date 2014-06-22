@@ -1,7 +1,12 @@
 package mariri.mcassistant.handler;
 
+import java.util.ArrayList;
+
+import mariri.mcassistant.harvester.CropHarvester;
 import mariri.mcassistant.misc.Comparator;
+import mariri.mcassistant.misc.Lib;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -12,10 +17,16 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 public class PlayerClickHandler {
 	
 	public static boolean TORCHASSIST_ENABLE;
+	
+	public static boolean CROPASSIST_ENABLE = true;
+	public static int CROPASSIST_REQUIRE_TOOL_LEVEL;
+
 
 	@ForgeSubscribe
 	public void doPlayerClick(PlayerInteractEvent e){
 		World world = e.entityPlayer.worldObj;
+		Block block = Block.blocksList[world.getBlockId(e.x, e.y, e.z)];
+		int meta = world.getBlockMetadata(e.x, e.y, e.z);
 		// トーチ補助機能
 		if(TORCHASSIST_ENABLE && e.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK && !world.isRemote){
 			if(isPickaxe(e.entityPlayer) || isShovel(e.entityPlayer)){
@@ -28,12 +39,44 @@ public class PlayerClickHandler {
 						e.entityPlayer.inventory.consumeInventoryItem(torch.getItem().itemID);
 						// トーチの使用をクライアントに通知
 						e.entityPlayer.onUpdate();
-						// 対象ブロックに対する右クリック処理をキャンセル
-						e.useBlock = Event.Result.DENY;
-//						e.setCanceled(true);
 					}
+					// 対象ブロックに対する右クリック処理をキャンセル
+					e.useBlock = Event.Result.DENY;
+//					e.setCanceled(true);
 				}
 			}
+		}
+		// 農業補助機能
+		if(		CROPASSIST_ENABLE && e.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK && !world.isRemote && !world.isAirBlock(e.x, e.y, e.z) &&
+				Comparator.CROP.compareBlock(block) &&
+				Comparator.HOE.compareCurrentItem(e.entityPlayer) &&
+				Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_REQUIRE_TOOL_LEVEL)){
+////			int dropId = block.idDropped(e.blockMetadata ,world.rand, 0);
+//			// 収穫後の連続クリック対策
+//			if(		e.blockMetadata == 0 &&
+//					(e.drops.size() == 0 ||
+//					(e.drops.size() == 1 && Comparator.SEED.compareItem(e.drops.get(0).getItem()) ))){
+////					( (dropId <= 0) ||
+////					(Comparator.SEED.compareItem(Item.itemsList[dropId]) && block.quantityDropped(player.getRNG()) <= 1))){
+////				harvester.cancelHarvest();
+//			}else{
+//				// ドロップ処理が完了する前に呼ばれたときのためにスレッドで処理
+//				if(e.drops.size() == 0){
+////					new HarvestCropThread(harvester).start();
+//				}else{
+			// 収穫後の連続クリック対策（MOD独自の方法で成長を管理している場合は対象外）
+			if(block instanceof BlockContainer || meta > 0){
+				CropHarvester harvester = new CropHarvester(world, e.entityPlayer, e.x, e.y, e.z, block, meta, new ArrayList<ItemStack>());
+				block.harvestBlock(world, e.entityPlayer, e.x, e.y, e.z, meta);
+				world.setBlockToAir(e.x, e.y, e.z);
+				harvester.findDrops();
+				harvester.harvestCrop();
+			}
+//			}
+			
+//			new HarvestCropThread(harvester).start();
+			e.useItem = Event.Result.DENY;
+//			e.setCanceled(true);
 		}
 	}
 	

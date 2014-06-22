@@ -23,8 +23,8 @@ public class PlayerHarvestEventHandler {
 	public static int[] CUTDOWN_CHAIN_AFFECT_POTION;
 	public static int CUTDOWN_CHAIN_REQUIRE_HUNGER;
 	public static int CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL;
-	public static boolean CROPASSIST_ENABLE = true;
-	public static int CROPASSIST_REQUIRE_TOOL_LEVEL;
+//	public static boolean CROPASSIST_ENABLE = true;
+//	public static int CROPASSIST_REQUIRE_TOOL_LEVEL;
 	public static boolean MINEASSIST_ENABLE = false;
 	public static int MINEASSIST_MAX_DISTANCE;
 	public static int[] MINEASSIST_REQUIRE_POTION_LEVEL;
@@ -61,17 +61,29 @@ public class PlayerHarvestEventHandler {
 					harvester.harvestEdge();
 				}
 			}
-			// 農業補助機能
-			if(CROPASSIST_ENABLE && isCrop(block) && isHoe(player) && compareCurrentToolLevel(player, CROPASSIST_REQUIRE_TOOL_LEVEL)){
-				CropHarvester harvester = new CropHarvester(world, player, x, y, z, block, e.blockMetadata, e.drops);
-				// 収穫後の連続クリック対策
-				if(e.blockMetadata == 0 && block.idDropped(e.blockMetadata ,world.rand, 0) <= 0){
-					harvester.cancelHarvest();
-				}else{
-					// ドロップ処理が完了する前に呼ばれたときのためにスレッドで処理
-					new HarvestCropThread(harvester).start();
-				}
-			}
+//			// 農業補助機能
+//			if(CROPASSIST_ENABLE && isCrop(block) && isHoe(player) && compareCurrentToolLevel(player, CROPASSIST_REQUIRE_TOOL_LEVEL)){
+//				CropHarvester harvester = new CropHarvester(world, player, x, y, z, block, e.blockMetadata, e.drops);
+////				int dropId = block.idDropped(e.blockMetadata ,world.rand, 0);
+//				// 収穫後の連続クリック対策
+//				if(		e.blockMetadata == 0 &&
+//						(e.drops.size() == 0 ||
+//						(e.drops.size() == 1 && Comparator.SEED.compareItem(e.drops.get(0).getItem()) ))){
+////						( (dropId <= 0) ||
+////						(Comparator.SEED.compareItem(Item.itemsList[dropId]) && block.quantityDropped(player.getRNG()) <= 1))){
+////					harvester.cancelHarvest();
+//				}else{
+//					// ドロップ処理が完了する前に呼ばれたときのためにスレッドで処理
+//					if(e.drops.size() == 0){
+////						new HarvestCropThread(harvester).start();
+//					}else{
+//						harvester.harvestCrop();
+//					}
+//				}
+//				
+////				new HarvestCropThread(harvester).start();
+//				
+//			}
 			// 鉱石一括破壊機能
 			if(MINEASSIST_ENABLE && compareCurrentToolLevel(player, MINEASSIST_REQUIRE_TOOL_LEVEL) &&
 					Lib.isPotionAffected(player, MINEASSIST_REQUIRE_POTION_LEVEL) &&
@@ -116,6 +128,7 @@ public class PlayerHarvestEventHandler {
 		}
 		
 		public void run(){
+			harvester.findDrops();
 			harvester.harvestCrop();
 		}
 	}

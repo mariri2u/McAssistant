@@ -1,6 +1,5 @@
 package mariri.mcassistant.harvester;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import mariri.mcassistant.misc.Comparator;
@@ -48,27 +47,42 @@ public class CropHarvester extends Harvester {
 		world.setBlock(target.x, target.y, target.z, block.blockID, 0, 4);
 	}
 	
+	public void findDrops(){
+//		block.dropBlockAsItem(world, target.x, target.y, target.z, metadata, 0);
+//		while(!world.isAirBlock(target.x, target.y, target.z)){}
+//		if(drops == null){
+//			drops = new ArrayList<ItemStack>();
+//		}
+		List<EntityItem> entityList = world.getEntitiesWithinAABB(EntityItem.class,
+				AxisAlignedBB.getBoundingBox(target.x - 1, target.y - 1, target.z - 1, target.x + 2, target.y + 2, target.z + 2));
+		for(EntityItem item : entityList){
+			drops.add(item.getEntityItem());
+		}
+	}
+	
 	public void harvestCrop(){
 //		ArrayList<ItemStack> drops = block.getBlockDropped(world, target.x, target.y, target.z, metadata, 0);
 		ItemStack seed = null;
-		List<ItemStack> drops;
-		
-		if(this.drops.size() == 0){
-//			block.dropBlockAsItem(world, target.x, target.y, target.z, metadata, 0);
-			drops = new ArrayList<ItemStack>();
-			List<EntityItem> entityList = world.getEntitiesWithinAABB(EntityItem.class,
-					AxisAlignedBB.getBoundingBox(target.x - 1, target.y - 1, target.z - 1, target.x + 2, target.y + 2, target.z + 2));
-			for(EntityItem item : entityList){
-				drops.add(item.getEntityItem());
-			}
-		}else{
-			drops = this.drops;
-		}
+//		List<ItemStack> drops;
+//		
+//		if(this.drops.size() == 0){
+////			block.dropBlockAsItem(world, target.x, target.y, target.z, metadata, 0);
+//			drops = new ArrayList<ItemStack>();
+//			List<EntityItem> entityList = world.getEntitiesWithinAABB(EntityItem.class,
+//					AxisAlignedBB.getBoundingBox(target.x - 1, target.y - 1, target.z - 1, target.x + 2, target.y + 2, target.z + 2));
+//			for(EntityItem item : entityList){
+//				drops.add(item.getEntityItem());
+//			}
+//		}else{
+//			drops = this.drops;
+//		}
 		
 		for(ItemStack itemstack : drops){
 			if(isSeed(itemstack.getItem())){
 				seed = itemstack;
+//				System.out.println("Seed!!");
 			}
+//			System.out.println(itemstack.getUnlocalizedName() + ":" + itemstack.stackSize);
 		}
 		
 		if(CROPASSIST_AUTOCRAFT && seed == null){
@@ -109,6 +123,7 @@ public class CropHarvester extends Harvester {
 		if(seed != null){
 //			seed.stackSize--;
 			// 植え直しできた場合
+			System.out.println("doReplant!!");
 			if(seed.getItem().onItemUse(seed, player, world, target.x, target.y - 1, target.z, 1, 0, 0, 0)){
 				if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
 					player.destroyCurrentEquippedItem();

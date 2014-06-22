@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumToolMaterial;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemHoe;
@@ -38,6 +39,15 @@ public class Lib {
 			}
 		}
 		return m;
+	}
+	
+	public static boolean compareCurrentToolLevel(EntityPlayer player, int level){
+		boolean result = false;
+		try{
+			EnumToolMaterial material = getMaterial(player.getCurrentEquippedItem().getItem());
+			result = material.getHarvestLevel() >= level;
+		}catch(NullPointerException e){}
+		return result;
 	}
 	
 	public static int getPotionAffectedLevel(EntityLivingBase entity, int id){
