@@ -60,7 +60,7 @@ public class PlayerClickHandler {
 		int meta = world.getBlockMetadata(e.x, e.y, e.z);
 		// 農業補助機能
 		if(		CROPASSIST_ENABLE && !world.isAirBlock(e.x, e.y, e.z) &&
-				Comparator.CROP.compareBlock(block) &&
+				Comparator.CROP.compareBlock(block, meta) &&
 				Comparator.HOE.compareCurrentItem(e.entityPlayer) &&
 				Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_REQUIRE_TOOL_LEVEL)){
 ////			int dropId = block.idDropped(e.blockMetadata ,world.rand, 0);

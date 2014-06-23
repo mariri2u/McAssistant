@@ -49,7 +49,7 @@ public class PlayerHarvestEventHandler {
 		Block block = e.block;
 		if(player != null && !player.isSneaking()){
 			// 木こり補助機能
-			if(CUTDOWN_ENABLE && isLog(block) && isAxe(player)){
+			if(CUTDOWN_ENABLE && Comparator.LOG.compareBlock(block, e.blockMetadata) && isAxe(player)){
 				EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, e.drops, CUTDOWN_BELOW, CUTDOWN_MAX_DISTANCE);
 				// 木こり一括破壊の判定
 				if(CUTDOWN_CHAIN && Lib.isPotionAffected(player, CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL) &&
@@ -87,7 +87,7 @@ public class PlayerHarvestEventHandler {
 			if(MINEASSIST_ENABLE && Lib.compareCurrentToolLevel(player, MINEASSIST_REQUIRE_TOOL_LEVEL) &&
 					Lib.isPotionAffected(player, MINEASSIST_REQUIRE_POTION_LEVEL) &&
 					player.getFoodStats().getFoodLevel() >= MINEASSIST_REQUIRE_HUNGER &&
-					Comparator.ORE.compareBlock(block) && Comparator.PICKAXE.compareCurrentItem(player)){
+					Comparator.ORE.compareBlock(block, e.blockMetadata) && Comparator.PICKAXE.compareCurrentItem(player)){
 				EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, e.drops, true, MINEASSIST_MAX_DISTANCE);
 				// レッドストーンは光っていても同一視
 				if(block.blockID == Block.oreRedstone.blockID){
@@ -99,9 +99,9 @@ public class PlayerHarvestEventHandler {
 			}
 			// 整地補助機能
 			if(FLATASSIST_ENABLE && player.getFoodStats().getFoodLevel() >= FLATASSIST_REQUIRE_HUNGER &&
-					((FLATASSIST_ENABLE_DIRT && Comparator.DIRT.compareBlock(block) && Comparator.SHOVEL.compareCurrentItem(player)) ||
-					(FLATASSIST_ENABLE_STONE && Comparator.STONE.compareBlock(block) && Comparator.PICKAXE.compareCurrentItem(player)) ||
-					(FLATASSIST_ENABLE_WOOD && Comparator.WOOD.compareBlock(block) && Comparator.AXE.compareCurrentItem(player)) ) &&
+					((FLATASSIST_ENABLE_DIRT && Comparator.DIRT.compareBlock(block, e.blockMetadata) && Comparator.SHOVEL.compareCurrentItem(player)) ||
+					(FLATASSIST_ENABLE_STONE && Comparator.STONE.compareBlock(block, e.blockMetadata) && Comparator.PICKAXE.compareCurrentItem(player)) ||
+					(FLATASSIST_ENABLE_WOOD && Comparator.WOOD.compareBlock(block, e.blockMetadata) && Comparator.AXE.compareCurrentItem(player)) ) &&
 					Lib.compareCurrentToolLevel(player, FLATASSIST_REQUIRE_TOOL_LEVEL)){
 				// ポーションレベルによって採掘範囲を変更
 				int distance = Lib.getPotionAffectedLevel(player, FLATASSIST_REQUIRE_POTION_ID);
@@ -162,16 +162,16 @@ public class PlayerHarvestEventHandler {
 		return Comparator.AXE.compareCurrentItem(player);
 	}
 	
-	private boolean isLog(Block block){
-		return Comparator.LOG.compareBlock(block);
-	}
+//	private boolean isLog(Block block){
+//		return Comparator.LOG.compareBlock(block);
+//	}
 	
 	private boolean isHoe(EntityPlayer player){
 		return Comparator.HOE.compareCurrentItem(player);
 	}
 	
-	private boolean isCrop(Block block){
-		return Comparator.CROP.compareBlock(block);
-	}
+//	private boolean isCrop(Block block){
+//		return Comparator.CROP.compareBlock(block);
+//	}
 
 }

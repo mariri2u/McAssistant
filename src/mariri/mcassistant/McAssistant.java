@@ -24,7 +24,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 
 
-@Mod(modid="McAssistant", name="McAssistant", version="1.6.4-0.5", dependencies = "")
+@Mod(modid="McAssistant", name="McAssistant", version="1.6.4-0.5a", dependencies = "")
 @NetworkMod(clientSideRequired=false)
 public class McAssistant {
 
@@ -120,7 +120,7 @@ public class McAssistant {
 	        Comparator.STONE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneOreDictionary", "").getString(), ","));
 	        Comparator.WOOD.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodNames", ".*[wW]ood.*, .*[pP]lank.*").getString(), ","));
 	        Comparator.WOOD.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodClasses", ".*[wW]ood.*, .*[pP]lank.*, .*[bB]lock[fF]ence.*").getString(), ","));
-	        Comparator.WOOD.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodOreDictionary", "").getString(), ","));
+	        Comparator.WOOD.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodOreDictionary", "plankWood").getString(), ","));
 //	        Comparator.SAPLING.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingNames", ".*[sS]apling.*").getString(), ","));
 //	        Comparator.SAPLING.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingClasses", ".*[sS]apling.*").getString(), ","));
 //	        Comparator.SAPLING.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingOreDictionary", "").getString(), ","));

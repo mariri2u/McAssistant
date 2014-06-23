@@ -125,10 +125,10 @@ public class Comparator {
 	}
 	
 	public List<ItemStack> findOreDict(ItemStack item){
-		List<ItemStack> result = null;
+		List<ItemStack> result = new ArrayList<ItemStack>();
 		try{
 			int oreId = OreDictionary.getOreID(item);
-	    	if(oreId > 0){
+	    	if(oreId >= 0){
 	    		for(String regex : oredicts){
 	    			if(OreDictionary.getOreName(oreId).matches(regex)){
 	    				result = OreDictionary.getOres(oreId);
@@ -140,8 +140,14 @@ public class Comparator {
 	}
 	
 	//
-	public boolean compareBlock(Block b){
-		return compareName(b) || compareClass(b) || compareOreDict(new ItemStack(b));
+	public boolean compareBlock(Block block, int meta){
+		return compareName(block) || compareClass(block) || compareOreDict(new ItemStack(block, 1, meta));
+	}
+	
+	public boolean compareBlock(ItemStack itemstack){
+		Block block = Block.blocksList[itemstack.getItem().itemID];
+		return compareName(block) || compareClass(block) || compareOreDict(itemstack);
+		
 	}
 	
 	public boolean compareItem(Item item){

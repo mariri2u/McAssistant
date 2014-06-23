@@ -123,7 +123,6 @@ public class CropHarvester extends Harvester {
 		if(seed != null){
 //			seed.stackSize--;
 			// 植え直しできた場合
-			System.out.println("doReplant!!");
 			if(seed.getItem().onItemUse(seed, player, world, target.x, target.y - 1, target.z, 1, 0, 0, 0)){
 				if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
 					player.destroyCurrentEquippedItem();
