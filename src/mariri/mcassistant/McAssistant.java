@@ -24,7 +24,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 
 
-@Mod(modid="McAssistant", name="McAssistant", version="1.6.4-0.4", dependencies = "")
+@Mod(modid="McAssistant", name="McAssistant", version="1.6.4-0.5", dependencies = "")
 @NetworkMod(clientSideRequired=false)
 public class McAssistant {
 
@@ -78,7 +78,8 @@ public class McAssistant {
 	        PlayerHarvestEventHandler.FLATASSIST_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistBelow", false).getBoolean(false);
 	        PlayerHarvestEventHandler.FLATASSIST_ENABLE_DIRT = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnableDirt", true).getBoolean(true);
 	        PlayerHarvestEventHandler.FLATASSIST_ENABLE_STONE = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnableStone", true).getBoolean(true);
-
+	        PlayerHarvestEventHandler.FLATASSIST_ENABLE_WOOD = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnableWood", true).getBoolean(true);
+	        
 	        // TorchAssist
 	        PlayerClickHandler.TORCHASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "torchassistEnable", true).getBoolean(true);
 
@@ -114,9 +115,12 @@ public class McAssistant {
 	        Comparator.DIRT.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtNames", "").getString(), ","));
 	        Comparator.DIRT.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtClasses", ".*[gG]rass.*, .*[dD]irt.*, .*[mM]ycelium.*, .*[sS]and, .*[cC]lay.*, .*[gG]ravel.*").getString(), ","));
 	        Comparator.DIRT.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtOreDictionary", "").getString(), ","));
-	        Comparator.STONE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneNames", ".*[sS]tone.*, .*[bB]rick.*, .*[cC]lay.*").getString(), ","));
-	        Comparator.STONE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneClasses", ".*[sS]tone.*, .*[nN]etherrack.*").getString(), ","));
+	        Comparator.STONE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneNames", ".*[sS]tone.*, .*[bB]rick.*, .*[cC]lay.*, .*[fF]ence.*, .*[wW]all.*, .*[iI]ron.*").getString(), ","));
+	        Comparator.STONE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneClasses", ".*[sS]tone.*, .*[nN]etherrack.*, .*[sS]ilver[fF]ish.*").getString(), ","));
 	        Comparator.STONE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneOreDictionary", "").getString(), ","));
+	        Comparator.WOOD.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodNames", ".*[wW]ood.*, .*[pP]lank.*").getString(), ","));
+	        Comparator.WOOD.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodClasses", ".*[wW]ood.*, .*[pP]lank.*, .*[bB]lock[fF]ence.*").getString(), ","));
+	        Comparator.WOOD.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodOreDictionary", "").getString(), ","));
 //	        Comparator.SAPLING.registerName(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingNames", ".*[sS]apling.*").getString(), ","));
 //	        Comparator.SAPLING.registerClass(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingClasses", ".*[sS]apling.*").getString(), ","));
 //	        Comparator.SAPLING.registerOreDict(Misc.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingOreDictionary", "").getString(), ","));

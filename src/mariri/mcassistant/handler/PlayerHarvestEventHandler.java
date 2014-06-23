@@ -1,12 +1,10 @@
 package mariri.mcassistant.handler;
 
-import mariri.mcassistant.harvester.CropHarvester;
 import mariri.mcassistant.harvester.EdgeHarvester;
 import mariri.mcassistant.misc.Comparator;
 import mariri.mcassistant.misc.Lib;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.EnumToolMaterial;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeSubscribe;
@@ -39,9 +37,10 @@ public class PlayerHarvestEventHandler {
 	public static boolean FLATASSIST_BELOW;
 	public static boolean FLATASSIST_ENABLE_DIRT;
 	public static boolean FLATASSIST_ENABLE_STONE;
+	public static boolean FLATASSIST_ENABLE_WOOD;
 	
 	@ForgeSubscribe
-	public void onPlayerHarvestWoodWithAxe(BlockEvent.HarvestDropsEvent e){
+	public void onPlayerHarvest(BlockEvent.HarvestDropsEvent e){
 		int x = e.x;
 		int y = e.y;
 		int z = e.z;
@@ -55,7 +54,7 @@ public class PlayerHarvestEventHandler {
 				// 木こり一括破壊の判定
 				if(CUTDOWN_CHAIN && Lib.isPotionAffected(player, CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL) &&
 						player.getFoodStats().getFoodLevel() >= CUTDOWN_CHAIN_REQUIRE_HUNGER &&
-						compareCurrentToolLevel(player, CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL)){
+						Lib.compareCurrentToolLevel(player, CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL)){
 					harvester.harvestChain(CUTDOWN_CHAIN_AFFECT_POTION, false);
 				}else{
 					harvester.harvestEdge();
@@ -85,7 +84,7 @@ public class PlayerHarvestEventHandler {
 //				
 //			}
 			// 鉱石一括破壊機能
-			if(MINEASSIST_ENABLE && compareCurrentToolLevel(player, MINEASSIST_REQUIRE_TOOL_LEVEL) &&
+			if(MINEASSIST_ENABLE && Lib.compareCurrentToolLevel(player, MINEASSIST_REQUIRE_TOOL_LEVEL) &&
 					Lib.isPotionAffected(player, MINEASSIST_REQUIRE_POTION_LEVEL) &&
 					player.getFoodStats().getFoodLevel() >= MINEASSIST_REQUIRE_HUNGER &&
 					Comparator.ORE.compareBlock(block) && Comparator.PICKAXE.compareCurrentItem(player)){
@@ -100,20 +99,37 @@ public class PlayerHarvestEventHandler {
 			}
 			// 整地補助機能
 			if(FLATASSIST_ENABLE && player.getFoodStats().getFoodLevel() >= FLATASSIST_REQUIRE_HUNGER &&
-					(FLATASSIST_ENABLE_DIRT && (Comparator.DIRT.compareBlock(block) && Comparator.SHOVEL.compareCurrentItem(player)) ||
-					(FLATASSIST_ENABLE_STONE && Comparator.STONE.compareBlock(block) && Comparator.PICKAXE.compareCurrentItem(player)) &&
-					compareCurrentToolLevel(player, FLATASSIST_REQUIRE_TOOL_LEVEL))){
+					((FLATASSIST_ENABLE_DIRT && Comparator.DIRT.compareBlock(block) && Comparator.SHOVEL.compareCurrentItem(player)) ||
+					(FLATASSIST_ENABLE_STONE && Comparator.STONE.compareBlock(block) && Comparator.PICKAXE.compareCurrentItem(player)) ||
+					(FLATASSIST_ENABLE_WOOD && Comparator.WOOD.compareBlock(block) && Comparator.AXE.compareCurrentItem(player)) ) &&
+					Lib.compareCurrentToolLevel(player, FLATASSIST_REQUIRE_TOOL_LEVEL)){
 				// ポーションレベルによって採掘範囲を変更
 				int distance = Lib.getPotionAffectedLevel(player, FLATASSIST_REQUIRE_POTION_ID);
 				if(distance > 0){
 					EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, e.drops, FLATASSIST_BELOW, distance);
 					// 土・草・菌糸は同一視
 					if(block.blockID == Block.grass.blockID){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(block.dirt), new ItemStack(block.mycelium) });
+						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Block.dirt), new ItemStack(Block.mycelium) });
 					}else if(block.blockID == Block.dirt.blockID){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(block.grass), new ItemStack(block.mycelium) });
+						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Block.grass), new ItemStack(Block.mycelium) });
 					}else if(block.blockID == Block.mycelium.blockID){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(block.grass), new ItemStack(block.dirt) });
+						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Block.grass), new ItemStack(Block.dirt) });
+					}
+					// 石とシルバーフィッシュは同一視
+					if(block.blockID == Block.stone.blockID){
+						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Block.silverfish) });
+					}
+					// 丸石とシルバーフィッシbュは同一視
+					if(block.blockID == Block.cobblestone.blockID){
+						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Block.silverfish) });
+					}
+					// 石レンガとシルバーフィッシュは同一視
+					if(block.blockID == Block.stoneBrick.blockID){
+						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Block.silverfish) });
+					}
+					// シルバーフィッシュは石系ブロックと同一視
+					if(block.blockID == Block.silverfish.blockID){
+						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Block.stone), new ItemStack(block.cobblestone), new ItemStack(Block.stoneBrick) });
 					}
 					harvester.harvestChain(FLATASSIST_AFFECT_POTION, true);
 				}
@@ -121,26 +137,26 @@ public class PlayerHarvestEventHandler {
 		}
 	}
 	
-	private class HarvestCropThread extends Thread{
-		private CropHarvester harvester;
-		public HarvestCropThread(CropHarvester harvester){
-			this.harvester = harvester;
-		}
-		
-		public void run(){
-			harvester.findDrops();
-			harvester.harvestCrop();
-		}
-	}
+//	private class HarvestCropThread extends Thread{
+//		private CropHarvester harvester;
+//		public HarvestCropThread(CropHarvester harvester){
+//			this.harvester = harvester;
+//		}
+//		
+//		public void run(){
+//			harvester.findDrops();
+//			harvester.harvestCrop();
+//		}
+//	}
 	
-	private boolean compareCurrentToolLevel(EntityPlayer player, int level){
-		boolean result = false;
-		try{
-			EnumToolMaterial material = Lib.getMaterial(player.getCurrentEquippedItem().getItem());
-			result = material.getHarvestLevel() >= level;
-		}catch(NullPointerException e){}
-		return result;
-	}
+//	private boolean compareCurrentToolLevel(EntityPlayer player, int level){
+//		boolean result = false;
+//		try{
+//			EnumToolMaterial material = Lib.getMaterial(player.getCurrentEquippedItem().getItem());
+//			result = material.getHarvestLevel() >= level;
+//		}catch(NullPointerException e){}
+//		return result;
+//	}
 		
 	private boolean isAxe(EntityPlayer player){
 		return Comparator.AXE.compareCurrentItem(player);

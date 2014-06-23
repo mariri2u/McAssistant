@@ -25,6 +25,7 @@ public class Comparator {
 	public static Comparator HOE = new Comparator();
 	public static Comparator DIRT = new Comparator();
 	public static Comparator STONE = new Comparator();
+	public static Comparator WOOD = new Comparator();
 //	public static Comparator SAPLING = new Comparator();
 	
 	protected Comparator(){

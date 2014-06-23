@@ -58,7 +58,7 @@ public class EdgeHarvester extends Harvester {
 //		boolean hasItem = true;
 		while(player.inventory.getCurrentItem() != null && findEdge(square) >= 0){
 			harvestEdge();
-			if(player.inventory.getCurrentItem() != null && player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
+			if(count > 1 && player.inventory.getCurrentItem() != null && player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
 				player.destroyCurrentEquippedItem();
 //				hasItem = false;
 			}
@@ -128,7 +128,7 @@ public class EdgeHarvester extends Harvester {
 	private boolean matchBlock(int x, int y, int z, int id, int meta){
 		boolean result = false;
 		result |= world.getBlockId(x, y, z) == id;
-		result &= world.getBlockMetadata(x, y, z) == meta;
+//		result &= world.getBlockMetadata(x, y, z) == meta;
 		return result;
 	}
 
@@ -160,11 +160,14 @@ public class EdgeHarvester extends Harvester {
 //					}
 //				}
 //			}
+			Block edblk = Block.blocksList[world.getBlockId(edge.x, edge.y, edge.z)];
+			int edmeta = world.getBlockMetadata(edge.x, edge.y, edge.z);
 			world.setBlockToAir(edge.x, edge.y, edge.z);
-			if(silktouch && block.canSilkHarvest(world, player, edge.x, edge.y, edge.z, metadata)){
-				Lib.spawnItem(world, edge.x, edge.y, edge.z, new ItemStack(block.blockID, 1, metadata));
+			edblk.onBlockDestroyedByPlayer(world, edge.x, edge.y, edge.z, edmeta);
+			if(silktouch && edblk.canSilkHarvest(world, player, edge.x, edge.y, edge.z, edmeta)){
+				Lib.spawnItem(world, edge.x, edge.y, edge.z, new ItemStack(edblk.blockID, 1, edmeta));
 			}else{
-				Lib.spawnItem(world, edge.x, edge.y, edge.z, block.getBlockDropped(world, edge.x, edge.y, edge.z, metadata, fortune));
+				Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getBlockDropped(world, edge.x, edge.y, edge.z, edmeta, fortune));
 				
 //				block.dropBlockAsItem(world, edge.x, edge.y, edge.z, metadata, fortune);
 			}

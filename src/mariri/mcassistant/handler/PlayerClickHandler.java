@@ -23,31 +23,43 @@ public class PlayerClickHandler {
 
 
 	@ForgeSubscribe
-	public void doPlayerClick(PlayerInteractEvent e){
+	public void onPlayerClick(PlayerInteractEvent e){
+		if(!e.entityPlayer.worldObj.isRemote && !e.entityPlayer.isSneaking()){
+			if(e.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK){
+				onRightClickBlock(e);
+			}else if(e.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK){
+				onLeftClickBlock(e);
+			}
+		}
+	}
+	
+	private void onRightClickBlock(PlayerInteractEvent e){
+		// トーチ補助機能
+		World world = e.entityPlayer.worldObj;
+		if(TORCHASSIST_ENABLE && (isPickaxe(e.entityPlayer) || isShovel(e.entityPlayer))){
+			ItemStack torch = new ItemStack(Block.torchWood, 1);
+			// トーチを持っている場合
+			if(e.entityPlayer.inventory.hasItem(torch.getItem().itemID)){
+				// トーチを設置できた場合
+				if(		!Block.blocksList[world.getBlockId(e.x, e.y, e.z)].onBlockActivated(world, e.x, e.y, e.z, e.entityPlayer, e.face, 0, 0, 0) &&
+						torch.getItem().onItemUse(torch, e.entityPlayer, world, e.x, e.y, e.z, e.face, 0, 0, 0)){
+					e.entityPlayer.inventory.consumeInventoryItem(torch.getItem().itemID);
+					// トーチの使用をクライアントに通知
+					e.entityPlayer.onUpdate();
+				}
+				// 対象ブロックに対する右クリック処理をキャンセル
+				e.useBlock = Event.Result.DENY;
+//					e.setCanceled(true);
+			}
+		}
+	}
+	
+	private void onLeftClickBlock(PlayerInteractEvent e){
 		World world = e.entityPlayer.worldObj;
 		Block block = Block.blocksList[world.getBlockId(e.x, e.y, e.z)];
 		int meta = world.getBlockMetadata(e.x, e.y, e.z);
-		// トーチ補助機能
-		if(TORCHASSIST_ENABLE && e.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK && !world.isRemote){
-			if(isPickaxe(e.entityPlayer) || isShovel(e.entityPlayer)){
-				ItemStack torch = new ItemStack(Block.torchWood, 1);
-				// トーチを持っている場合
-				if(e.entityPlayer.inventory.hasItem(torch.getItem().itemID)){
-					// トーチを設置できた場合
-					if(		!Block.blocksList[world.getBlockId(e.x, e.y, e.z)].onBlockActivated(world, e.x, e.y, e.z, e.entityPlayer, e.face, 0, 0, 0) &&
-							torch.getItem().onItemUse(torch, e.entityPlayer, world, e.x, e.y, e.z, e.face, 0, 0, 0)){
-						e.entityPlayer.inventory.consumeInventoryItem(torch.getItem().itemID);
-						// トーチの使用をクライアントに通知
-						e.entityPlayer.onUpdate();
-					}
-					// 対象ブロックに対する右クリック処理をキャンセル
-					e.useBlock = Event.Result.DENY;
-//					e.setCanceled(true);
-				}
-			}
-		}
 		// 農業補助機能
-		if(		CROPASSIST_ENABLE && e.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK && !world.isRemote && !world.isAirBlock(e.x, e.y, e.z) &&
+		if(		CROPASSIST_ENABLE && !world.isAirBlock(e.x, e.y, e.z) &&
 				Comparator.CROP.compareBlock(block) &&
 				Comparator.HOE.compareCurrentItem(e.entityPlayer) &&
 				Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_REQUIRE_TOOL_LEVEL)){
@@ -78,6 +90,7 @@ public class PlayerClickHandler {
 			e.useItem = Event.Result.DENY;
 //			e.setCanceled(true);
 		}
+
 	}
 	
 	private boolean isPickaxe(EntityPlayer player){
