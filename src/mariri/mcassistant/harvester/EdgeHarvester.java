@@ -165,7 +165,14 @@ public class EdgeHarvester extends Harvester {
 			world.setBlockToAir(edge.x, edge.y, edge.z);
 			edblk.onBlockDestroyedByPlayer(world, edge.x, edge.y, edge.z, edmeta);
 			if(silktouch && edblk.canSilkHarvest(world, player, edge.x, edge.y, edge.z, edmeta)){
-				Lib.spawnItem(world, edge.x, edge.y, edge.z, new ItemStack(edblk.blockID, 1, edmeta));
+				ItemStack stack = new ItemStack(edblk.blockID, 1, edmeta);
+				if(edblk.blockID == Block.oreRedstoneGlowing.blockID){
+					stack = new ItemStack(Block.oreRedstone);
+				}else if(edblk.blockID == Block.silverfish.blockID){
+					stack = (edmeta == 0) ? new ItemStack(Block.stone) :
+							(edmeta == 1) ? new ItemStack(Block.cobblestone) : new ItemStack(Block.stoneBrick);
+				}
+				Lib.spawnItem(world, edge.x, edge.y, edge.z, stack);
 			}else{
 				Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getBlockDropped(world, edge.x, edge.y, edge.z, edmeta, fortune));
 				

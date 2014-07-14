@@ -24,7 +24,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 
 
-@Mod(modid="McAssistant", name="McAssistant", version="1.6.4-0.5a", dependencies = "")
+@Mod(modid="McAssistant", name="McAssistant", version="1.6.2-1.0a", dependencies = "")
 @NetworkMod(clientSideRequired=false)
 public class McAssistant {
 

@@ -119,7 +119,7 @@ public class PlayerHarvestEventHandler {
 					if(block.blockID == Block.stone.blockID){
 						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Block.silverfish) });
 					}
-					// 丸石とシルバーフィッシbュは同一視
+					// 丸石とシルバーフィッシュは同一視
 					if(block.blockID == Block.cobblestone.blockID){
 						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Block.silverfish) });
 					}
