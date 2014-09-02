@@ -27,7 +27,8 @@ public class Comparator {
 	public static Comparator DIRT = new Comparator();
 	public static Comparator STONE = new Comparator();
 	public static Comparator WOOD = new Comparator();
-//	public static Comparator SAPLING = new Comparator();
+	public static Comparator SAPLING = new Comparator();
+	public static Comparator LEAVE = new Comparator();
 	
 	protected Comparator(){
 	}
@@ -157,6 +158,11 @@ public class Comparator {
 	
 	public boolean compareItem(Item item){
 		return compareName(item) || compareClass(item) || compareOreDict(new ItemStack(item));
+	}
+	
+	public boolean compareItem(ItemStack itemstack){
+		Item item = itemstack.getItem();
+		return compareName(item) || compareClass(item) || compareOreDict(itemstack);
 	}
 	
 	public boolean compareCurrentItem(EntityPlayer player){

@@ -1,10 +1,12 @@
 package mariri.mcassistant.helper;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
@@ -17,6 +19,15 @@ public class EdgeHarvester {
 	private boolean below;
 	private int maxDist;
 	private ItemStack[] identifies;
+	private Comparator idCompare;
+	private boolean dropAfter;
+	private boolean isReplant;
+	private List<ItemStack> drops;
+	private boolean currentIdentify;
+	private boolean targetIdentify;
+	private int horizonalMaxOffset;
+	private Coord coreCoord;
+	private boolean idBreakTool;
 	
 	protected World world;
 	protected EntityPlayer player;
@@ -37,6 +48,9 @@ public class EdgeHarvester {
 		this.maxDist = dist;
 		this.count = 0;
 		this.checkMeta = true;
+		this.horizonalMaxOffset = 0;
+		this.drops = new LinkedList<ItemStack>();
+		this.idBreakTool = true;
 	}
 	
 	public EdgeHarvester setIdentifyBlocks(ItemStack[] blocks){
@@ -44,8 +58,33 @@ public class EdgeHarvester {
 		return this;
 	}
 	
+	public EdgeHarvester setIdentifyComparator(Comparator value){
+		this.idCompare = value;
+		return this;
+	}
+	
+	public EdgeHarvester setReplant(boolean value){
+		this.isReplant = true;
+		return this;
+	}
+	
+	public EdgeHarvester setDropAfter(boolean value){
+		this.dropAfter = value;
+		return this;
+	}
+	
 	public EdgeHarvester setCheckMetadata(boolean value){
 		this.checkMeta = value;
+		return this;
+	}
+	
+	public EdgeHarvester setHorizonalMaxOffset(int value){
+		this.horizonalMaxOffset = value;
+		return this;
+	}
+	
+	public EdgeHarvester setIdentifyBreakTool(boolean value){
+		this.idBreakTool = value;
 		return this;
 	}
 	
@@ -62,6 +101,15 @@ public class EdgeHarvester {
 		}
 	}
 	
+	private int getHorizonalDistance(int x, int y, int z, boolean square){
+		Coord target = path.getFirst();
+		if(square){
+			return Math.max(Math.abs(x - target.x), Math.abs(z - target.z));
+		}else{
+			return Math.abs(x - target.x) + Math.abs(z - target.z);
+		}
+	}
+	
 //	private void debugOutput(String prefix, Coord c, String sufix){
 //		System.out.println(prefix + " (" + c.x + ", " + c.y + ", " + c.z + ") " + sufix);
 //	}
@@ -70,19 +118,35 @@ public class EdgeHarvester {
 		return harvestChain(null, false);
 	}
 	
-	public int harvestChain(int[] potion, boolean square){
+	public int harvestChain(int[][] potion, boolean square){
 		while(player.inventory.getCurrentItem() != null && findEdge(square) >= 0){
 			harvestEdge();
-			if(count > 1 && player.inventory.getCurrentItem() != null && player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
-				player.destroyCurrentEquippedItem();
-			}
 		}
-		if(potion != null && potion.length == 3){
-			PotionEffect effect = player.getActivePotionEffect(Potion.potionTypes[potion[0]]);
-			if(effect != null && effect.getAmplifier() == potion[1] - 1){
-				player.addPotionEffect(new PotionEffect(potion[0], effect.getDuration() + potion[2] * count, potion[1] - 1));
-			}else{
-				player.addPotionEffect(new PotionEffect(potion[0], potion[2] * count, potion[1] - 1));
+		if(dropAfter){
+			// -- 再植え付け --
+			for(ItemStack items : drops){
+				Coord c = path.getFirst();
+				if(		Comparator.SAPLING.compareItem(items) &&
+						world.isAirBlock(c.x, c.y, c.z) &&
+						world.getBlock(c.x, c.y - 1, c.z) == Blocks.dirt){
+//					items.getItem().onItemUse(items, player, world, c.x, c.y, c.z, 0, 0, 0, 0);
+					world.setBlock(c.x, c.y, c.z, ((ItemBlock)items.getItem()).field_150939_a, items.getItemDamage(), 2);
+					items.stackSize--;
+				}
+			}
+			Coord target = path.getFirst();
+			Lib.spawnItem(world, target.x, target.y, target.z, drops);
+		}
+		if(potion != null && potion.length > 0){
+			for(int[] pote : potion){
+				if(pote != null && pote.length == 3){
+					PotionEffect effect = player.getActivePotionEffect(Potion.potionTypes[pote[0]]);
+					if(effect != null && effect.getAmplifier() == pote[1] - 1){
+						player.addPotionEffect(new PotionEffect(pote[0], effect.getDuration() + pote[2] * count, pote[1] - 1));
+					}else{
+						player.addPotionEffect(new PotionEffect(pote[0], pote[2] * count, pote[1] - 1));
+					}
+				}
 			}
 		}
 		return count;
@@ -93,7 +157,6 @@ public class EdgeHarvester {
 //	}
 //	
 	public int findEdge(boolean square){
-		if(path.size() <= 0) { return -1; }
 		Coord edge = path.getLast().copy();
 		Coord prev = edge.copy();
 		int dist = getDistance(edge, square);
@@ -102,11 +165,15 @@ public class EdgeHarvester {
 				for(int z = prev.z - 1; z <= prev.z + 1; z++){
 					int d = getDistance(x, y, z, square);
 					if((below ? true : y >= path.getFirst().y) && matchBlock(x, y, z) && dist <= d && d <= maxDist){
-						edge.x = x;
-						edge.y = y;
-						edge.z = z;
-						path.addLast(new Coord(x, y, z));
-						dist = d;
+						// -- 葉っぱブロックの距離判定 --
+						if(!currentIdentify || horizonalMaxOffset <= 0 || getHorizonalDistance(x, y, z, true) <= horizonalMaxOffset){
+							edge.x = x;
+							edge.y = y;
+							edge.z = z;
+							path.addLast(new Coord(x, y, z));
+							dist = d;
+							targetIdentify = currentIdentify;
+						}
 					}
 				}
 			}
@@ -114,16 +181,42 @@ public class EdgeHarvester {
 		if(!(edge.x == prev.x && edge.y == prev.y && edge.z == prev.z) && dist <= maxDist){
 			findEdge(square);
 		}
+		if(count > 0 && path.size() <= 1) {
+			if(world.getBlock(path.getFirst().x, path.getFirst().y, path.getFirst().z) == Blocks.air){
+				return -1;
+			}else{
+				return 0;
+			}
+		}
 		return dist;
 	}
+	
+//	private boolean checkIdentify(int x, int y, int z){
+//		boolean result = false;
+//		for(ItemStack identify : identifies){
+//			result |= matchBlock(x, y, z, ((ItemBlock)identify.getItem()).field_150939_a, identify.getItemDamage());
+//		}
+//		return result;
+//	}
 	
 	private boolean matchBlock(int x, int y, int z){
 		boolean result = false;
 		result |= matchBlock(x, y, z, block, metadata);
-		if(identifies != null){
+		currentIdentify = false;
+		if(!result && identifies == null && idCompare != null){
+			Block b = world.getBlock(x, y, z);
+			int m = world.getBlockMetadata(x, y, z);
+			System.out.println("Block: " + b.getUnlocalizedName() + " " + m);
+			if(idCompare.compareBlock(b, m)){
+				identifies = new ItemStack[1];
+				identifies[0] = new ItemStack(b, m);
+				currentIdentify = result;
+			}
+		}else if(!result && identifies != null){
 			for(ItemStack identify : identifies){
 				result |= matchBlock(x, y, z, ((ItemBlock)identify.getItem()).field_150939_a, identify.getItemDamage());
 			}
+			currentIdentify = result;
 		}
 		return result;
 	}
@@ -150,11 +243,30 @@ public class EdgeHarvester {
 		world.setBlockToAir(edge.x, edge.y, edge.z);
 		edblk.onBlockDestroyedByPlayer(world, edge.x, edge.y, edge.z, edmeta);
 		if(silktouch && edblk.canSilkHarvest(world, player, edge.x, edge.y, edge.z, edmeta)){
-			Lib.spawnItem(world, edge.x, edge.y, edge.z, new ItemStack(edblk, 1, edmeta));
+			ItemStack drop = new ItemStack(edblk, 1, edmeta);
+			if(edblk == Blocks.lit_redstone_ore){
+				drop = new ItemStack(Blocks.redstone_ore);
+			}
+			if(dropAfter) { drops.add(drop); }
+			else{ Lib.spawnItem(world, edge.x, edge.y, edge.z, drop); }
 		}else{
-			Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune));
+			List<ItemStack> drop = edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune);
+			if(drop != null && drop.size() > 0 && dropAfter) {
+				for(ItemStack d : drop){ drops.add(d); }
+//				drops.addAll(drop);
+			}
+			else { Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune)); }
 		}
-		path.removeLast();
+		if(		player.inventory.getCurrentItem() != null && edblk != Blocks.air &&
+				(!targetIdentify || idBreakTool) &&
+				player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
+			player.destroyCurrentEquippedItem();
+		}
+
+		
+		if(path.size() > 1){
+			path.removeLast();
+		}
 		count++;
 	}
 	

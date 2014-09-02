@@ -49,6 +49,25 @@ public class Lib {
 		return result;
 	}
 	
+	public static boolean compareCurrentToolLevel(EntityPlayer player, int min, int max){
+		boolean result = false;
+		try{
+			Item.ToolMaterial material = getMaterial(player.getCurrentEquippedItem().getItem());
+			result = material.getHarvestLevel() >= min && material.getHarvestLevel() <= max;
+		}catch(NullPointerException e){}
+		return result;
+	}
+	
+	public static boolean compareCurrentToolLevel(EntityPlayer player, int[] level){
+		if(level.length == 1){
+			return compareCurrentToolLevel(player, level[0]);
+		}else if(level.length == 2){
+			return compareCurrentToolLevel(player, level[0], level[1]);
+		}else{
+			return false;
+		}
+	}
+	
 	public static int getPotionAffectedLevel(EntityLivingBase entity, int id){
 		int result = 0;
 		PotionEffect effect = entity.getActivePotionEffect(Potion.potionTypes[id]);
@@ -127,10 +146,11 @@ public class Lib {
         	ids = null;
         }else{
 	        for(int i = 0; i < aaa.length; i++){
-	    		int[] s = stringToInt(aaa[i], separator2);
-	    		ids[i] = new int[2];
-	    		ids[i][0] = s[0];
-	    		ids[i][1] = (s.length >= 2) ? s[1] : 0;
+	    		ids[i] = stringToInt(aaa[i], separator2);
+//	    		int[] s = stringToInt(aaa[i], separator2);
+//	    		ids[i] = new int[2];
+//	    		ids[i][0] = s[0];
+//	    		ids[i][1] = (s.length >= 2) ? s[1] : 0;
 	    	}
         }
     	return ids;

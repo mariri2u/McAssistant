@@ -18,6 +18,8 @@ public class PlayerClickHandler {
 	
 	public static boolean CROPASSIST_ENABLE = true;
 	public static int CROPASSIST_REQUIRE_TOOL_LEVEL;
+	
+	public static boolean LEAVEASSIST_ENABLE;
 
 
 	@SubscribeEvent
@@ -32,8 +34,10 @@ public class PlayerClickHandler {
 	}
 	
 	private void onRightClickBlock(PlayerInteractEvent e){
-		// トーチ補助機能
 		World world = e.entityPlayer.worldObj;
+		Block block = world.getBlock(e.x, e.y, e.z);// Block.blocksList[world.getBlockId(e.x, e.y, e.z)];
+		int meta = world.getBlockMetadata(e.x, e.y, e.z);
+		// トーチ補助機能
 		if(TORCHASSIST_ENABLE && (Comparator.PICKAXE.compareCurrentItem(e.entityPlayer) || Comparator.SHOVEL.compareCurrentItem(e.entityPlayer))){
 			ItemStack current = e.entityPlayer.getCurrentEquippedItem();
 			ItemStack torch = new ItemStack(Blocks.torch, 1);
@@ -52,6 +56,28 @@ public class PlayerClickHandler {
 				e.useItem = Event.Result.DENY;
 //				e.setCanceled(true);
 			}
+		}
+		// 葉っぱ破壊補助機能
+		if(		LEAVEASSIST_ENABLE && !world.isAirBlock(e.x, e.y, e.z) &&
+				Comparator.LEAVE.compareBlock(block, meta) &&
+				Comparator.AXE.compareCurrentItem(e.entityPlayer)){
+//			block.breakBlock(world, e.x, e.y, e.z, block, meta);
+			for(int x = e.x - 1; x <= e.x + 1; x++){
+				for(int y = e.y - 1; y <= e.y + 1; y++){
+					for(int z = e.z - 1; z <= e.z + 1; z++){
+						Block b = world.getBlock(x, y, z);
+						int m = world.getBlockMetadata(x, y, z);
+						if(Comparator.LEAVE.compareBlock(b, m)){
+							b.dropBlockAsItem(world, x, y, z, m, 0);
+							world.setBlockToAir(x, y, z);
+						}
+					}
+				}
+			}
+			if(e.entityPlayer.inventory.getCurrentItem().attemptDamageItem(1, e.entityPlayer.getRNG())){
+				e.entityPlayer.destroyCurrentEquippedItem();
+			}
+			e.setCanceled(true);
 		}
 	}
 	
@@ -76,6 +102,5 @@ public class PlayerClickHandler {
 			e.useItem = Event.Result.DENY;
 //			e.setCanceled(true);
 		}
-
 	}
 }
