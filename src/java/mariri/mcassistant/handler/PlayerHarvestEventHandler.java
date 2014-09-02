@@ -66,7 +66,7 @@ public class PlayerHarvestEventHandler {
 		if(player != null && !player.isSneaking()){
 			// 木こり補助機能
 			if(		CUTDOWN_ENABLE && Comparator.LOG.compareBlock(block, e.blockMetadata) && Comparator.AXE.compareCurrentItem(player) &&
-					(!CUTDOWN_ONLY_ROOT || world.getBlock(x, y - 1, z) == Blocks.dirt || world.getBlock(x, y - 1, z) == Blocks.grass ) ){
+					(!CUTDOWN_ONLY_ROOT || Comparator.DIRT.compareBlock(world.getBlock(x, y - 1, z), world.getBlockMetadata(x, y - 1, z))) ){
 				EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, CUTDOWN_BELOW, CUTDOWN_MAX_DISTANCE);
 				harvester.setCheckMetadata(false);
 				// 木こり一括破壊の判定

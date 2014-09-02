@@ -128,7 +128,7 @@ public class EdgeHarvester {
 				Coord c = path.getFirst();
 				if(		Comparator.SAPLING.compareItem(items) &&
 						world.isAirBlock(c.x, c.y, c.z) &&
-						world.getBlock(c.x, c.y - 1, c.z) == Blocks.dirt){
+						Comparator.DIRT.compareBlock(world.getBlock(c.x, c.y - 1, c.z), world.getBlockMetadata(c.x, c.y - 1, c.z))){
 //					items.getItem().onItemUse(items, player, world, c.x, c.y, c.z, 0, 0, 0, 0);
 					world.setBlock(c.x, c.y, c.z, ((ItemBlock)items.getItem()).field_150939_a, items.getItemDamage(), 2);
 					items.stackSize--;
