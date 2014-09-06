@@ -5,9 +5,14 @@ import mariri.mcassistant.helper.CropReplanter;
 import mariri.mcassistant.helper.Lib;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
+import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -20,7 +25,12 @@ public class PlayerClickHandler {
 	public static int CROPASSIST_REQUIRE_TOOL_LEVEL;
 	
 	public static boolean LEAVEASSIST_ENABLE;
-
+	
+	public static boolean BEDASSIST_ENABLE;
+	public static boolean BEDASSIST_SET_RESPAWN_ANYTIME;
+	public static String BEDASSIST_SET_RESPAWN_MESSAGE;
+	public static boolean BEDASSIST_NO_SLEEP;
+	public static String BEDASSIST_NO_SLEEP_MESSAGE;
 
 	@SubscribeEvent
 	public void onPlayerClick(PlayerInteractEvent e){
@@ -78,6 +88,26 @@ public class PlayerClickHandler {
 				e.entityPlayer.destroyCurrentEquippedItem();
 			}
 			e.setCanceled(true);
+		}
+		// ベッド補助機能
+		if(BEDASSIST_ENABLE && block == Blocks.bed){
+			// いつでもリスポーンセット
+			if(BEDASSIST_SET_RESPAWN_ANYTIME){
+	        	ChunkCoordinates respawn = new ChunkCoordinates(e.x, e.y, e.z);
+	            if (	world.provider.canRespawnHere() &&
+	            		world.getBiomeGenForCoords(e.x, e.z) != BiomeGenBase.hell &&
+	            		world.provider.isSurfaceWorld() &&
+	            		e.entityPlayer.isEntityAlive() &&
+	            		world.getEntitiesWithinAABB(EntityMob.class, AxisAlignedBB.getBoundingBox(e.x - 8, e.y - 5, e.z - 8, e.x + 8, e.y + 5, e.z + 8)).isEmpty()){
+	                e.entityPlayer.setSpawnChunk(respawn, false, e.entityPlayer.dimension);
+	                e.entityPlayer.addChatComponentMessage(new ChatComponentText(BEDASSIST_SET_RESPAWN_MESSAGE));
+	            }
+			}
+			// 寝るの禁止
+			if(BEDASSIST_NO_SLEEP){
+                e.entityPlayer.addChatComponentMessage(new ChatComponentText(BEDASSIST_NO_SLEEP_MESSAGE));
+                e.setCanceled(true);
+			}
 		}
 	}
 	

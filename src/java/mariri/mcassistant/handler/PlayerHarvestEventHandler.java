@@ -23,6 +23,7 @@ public class PlayerHarvestEventHandler {
 	public static int[][] CUTDOWN_CHAIN_AFFECT_POTION;
 	public static int CUTDOWN_CHAIN_REQUIRE_HUNGER;
 	public static int CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL;
+	public static int[] CUTDOWN_CHAIN_REQUIRE_ENCHANT_LEVEL;
 	public static boolean CUTDOWN_CHAIN_BREAK_LEAVES;
 	public static boolean CUTDOWN_CHAIN_REPLANT;
 	public static int CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE;
@@ -35,25 +36,36 @@ public class PlayerHarvestEventHandler {
 	public static int[][] MINEASSIST_AFFECT_POTION;
 	public static int MINEASSIST_REQUIRE_HUNGER;
 	public static int[] MINEASSIST_REQUIRE_TOOL_LEVEL;
+	public static int[] MINEASSIST_REQUIRE_ENCHANT_LEVEL;
+	
 	public static boolean FLATASSIST_ENABLE;
+	
 	public static boolean FLATASSIST_DIRT_ENABLE;
 	public static int FLATASSIST_DIRT_REQUIRE_POTION_ID;
 	public static int[] FLATASSIST_DIRT_REQUIRE_TOOL_LEVEL;
+	public static int FLATASSIST_DIRT_REQUIRE_ENCHANT_ID;
 	public static int[][] FLATASSIST_DIRT_AFFECT_POTION;
 	public static int FLATASSIST_DIRT_REQUIRE_HUNGER;
 	public static boolean FLATASSIST_DIRT_BELOW;
+	public static int FLATASSIST_DIRT_MAX_RADIUS;
+	
 	public static boolean FLATASSIST_STONE_ENABLE;
 	public static int FLATASSIST_STONE_REQUIRE_POTION_ID;
 	public static int[] FLATASSIST_STONE_REQUIRE_TOOL_LEVEL;
+	public static int FLATASSIST_STONE_REQUIRE_ENCHANT_ID;
 	public static int[][] FLATASSIST_STONE_AFFECT_POTION;
 	public static int FLATASSIST_STONE_REQUIRE_HUNGER;
 	public static boolean FLATASSIST_STONE_BELOW;
+	public static int FLATASSIST_STONE_MAX_RADIUS;
+	
 	public static boolean FLATASSIST_WOOD_ENABLE;
 	public static int FLATASSIST_WOOD_REQUIRE_POTION_ID;
 	public static int[] FLATASSIST_WOOD_REQUIRE_TOOL_LEVEL;
+	public static int FLATASSIST_WOOD_REQUIRE_ENCHANT_ID;
 	public static int[][] FLATASSIST_WOOD_AFFECT_POTION;
 	public static int FLATASSIST_WOOD_REQUIRE_HUNGER;
 	public static boolean FLATASSIST_WOOD_BELOW;
+	public static int FLATASSIST_WOOD_MAX_RADIUS;
 	
 	@SubscribeEvent
 	public void onPlayerHarvest(BlockEvent.BreakEvent e){
@@ -72,14 +84,21 @@ public class PlayerHarvestEventHandler {
 				// 木こり一括破壊の判定
 				if(CUTDOWN_CHAIN && Lib.isPotionAffected(player, CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL) &&
 						player.getFoodStats().getFoodLevel() >= CUTDOWN_CHAIN_REQUIRE_HUNGER &&
+						Lib.isEnchanted(player, CUTDOWN_CHAIN_REQUIRE_ENCHANT_LEVEL) &&
 						Lib.compareCurrentToolLevel(player, CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL)){
 					if(CUTDOWN_CHAIN_BREAK_LEAVES){
-						harvester.setHorizonalMaxOffset(CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE);
-						harvester.setIdentifyBreakTool(false);
-						harvester.setReplant(CUTDOWN_CHAIN_REPLANT);
-						harvester.setDropAfter(CUTDOWN_CHAIN_REPLANT);
-						harvester.setIdentifyComparator(Comparator.LEAVE);
-//						harvester.setCheckMetadata(true);
+						if(block == Blocks.red_mushroom_block){
+							harvester.setIdentifyBlocks(new ItemStack[] { new ItemStack(Blocks.brown_mushroom_block) });
+						}else if(block == Blocks.brown_mushroom_block){
+							harvester.setIdentifyBlocks(new ItemStack[] { new ItemStack(Blocks.red_mushroom_block) });
+						}else{
+							harvester.setHorizonalMaxOffset(CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE);
+							harvester.setIdentifyBreakTool(false);
+							harvester.setReplant(CUTDOWN_CHAIN_REPLANT);
+							harvester.setDropAfter(CUTDOWN_CHAIN_REPLANT);
+							harvester.setIdentifyComparator(Comparator.LEAVE);
+							//harvester.setCheckMetadata(true);
+						}
 					}
 					harvester.harvestChain(CUTDOWN_CHAIN_AFFECT_POTION, false);
 				}else{
@@ -91,6 +110,7 @@ public class PlayerHarvestEventHandler {
 			if(		MINEASSIST_ENABLE && Lib.compareCurrentToolLevel(player, MINEASSIST_REQUIRE_TOOL_LEVEL) &&
 					Lib.isPotionAffected(player, MINEASSIST_REQUIRE_POTION_LEVEL) &&
 					player.getFoodStats().getFoodLevel() >= MINEASSIST_REQUIRE_HUNGER &&
+					Lib.isEnchanted(player, MINEASSIST_REQUIRE_ENCHANT_LEVEL) &&
 					Comparator.ORE.compareBlock(block, e.blockMetadata) && Comparator.PICKAXE.compareCurrentItem(player)){
 				EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, true, MINEASSIST_MAX_DISTANCE);
 				harvester.setCheckMetadata(true);
@@ -116,7 +136,14 @@ public class PlayerHarvestEventHandler {
 						Comparator.DIRT.compareBlock(block, e.blockMetadata) &&
 						Comparator.SHOVEL.compareCurrentItem(player) &&
 						Lib.compareCurrentToolLevel(player, FLATASSIST_DIRT_REQUIRE_TOOL_LEVEL)){
-					distance = Lib.getPotionAffectedLevel(player, FLATASSIST_DIRT_REQUIRE_POTION_ID);
+					int plv = Lib.getPotionAffectedLevel(player, FLATASSIST_DIRT_REQUIRE_POTION_ID);
+					int elv = Lib.getEnchentLevel(player, FLATASSIST_DIRT_REQUIRE_ENCHANT_ID);
+					
+					distance =
+							(FLATASSIST_DIRT_REQUIRE_ENCHANT_ID <= 0) ? plv :
+							(FLATASSIST_DIRT_REQUIRE_POTION_ID <= 0) ? elv :
+							plv > elv ? elv : plv;
+					distance = (FLATASSIST_DIRT_MAX_RADIUS > 0 && distance > FLATASSIST_DIRT_MAX_RADIUS) ? FLATASSIST_DIRT_MAX_RADIUS : distance;
 					harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, FLATASSIST_DIRT_BELOW, distance);
 					affect = FLATASSIST_DIRT_AFFECT_POTION;
 					// 土・草・菌糸は同一視
@@ -135,7 +162,13 @@ public class PlayerHarvestEventHandler {
 							Comparator.STONE.compareBlock(block, e.blockMetadata) &&
 							Comparator.PICKAXE.compareCurrentItem(player) &&
 							Lib.compareCurrentToolLevel(player, FLATASSIST_STONE_REQUIRE_TOOL_LEVEL)){
-					distance = Lib.getPotionAffectedLevel(player, FLATASSIST_STONE_REQUIRE_POTION_ID);
+					int plv = Lib.getPotionAffectedLevel(player, FLATASSIST_STONE_REQUIRE_POTION_ID);
+					int elv = Lib.getEnchentLevel(player, FLATASSIST_STONE_REQUIRE_ENCHANT_ID);
+					distance =
+							(FLATASSIST_STONE_REQUIRE_ENCHANT_ID <= 0) ? plv :
+							(FLATASSIST_STONE_REQUIRE_POTION_ID <= 0) ? elv :
+							plv > elv ? elv : plv;
+					distance = (FLATASSIST_STONE_MAX_RADIUS > 0 && distance > FLATASSIST_STONE_MAX_RADIUS) ? FLATASSIST_STONE_MAX_RADIUS : distance;
 					harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, FLATASSIST_STONE_BELOW, distance);
 					affect = FLATASSIST_STONE_AFFECT_POTION;
 					// 石とシルバーフィッシュは同一視
@@ -163,7 +196,13 @@ public class PlayerHarvestEventHandler {
 							Comparator.WOOD.compareBlock(block, e.blockMetadata) &&
 							Comparator.AXE.compareCurrentItem(player) &&
 							Lib.compareCurrentToolLevel(player, FLATASSIST_WOOD_REQUIRE_TOOL_LEVEL)){
-					distance = Lib.getPotionAffectedLevel(player, FLATASSIST_WOOD_REQUIRE_POTION_ID);
+					int plv = Lib.getPotionAffectedLevel(player, FLATASSIST_WOOD_REQUIRE_POTION_ID);
+					int elv = Lib.getEnchentLevel(player, FLATASSIST_WOOD_REQUIRE_ENCHANT_ID);
+					distance =
+							(FLATASSIST_WOOD_REQUIRE_ENCHANT_ID <= 0) ? plv :
+							(FLATASSIST_WOOD_REQUIRE_POTION_ID <= 0) ? elv :
+							plv > elv ? elv : plv;
+					distance = (FLATASSIST_WOOD_MAX_RADIUS > 0 && distance > FLATASSIST_WOOD_MAX_RADIUS) ? FLATASSIST_WOOD_MAX_RADIUS : distance;
 					harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, FLATASSIST_WOOD_BELOW, distance);
 					affect = FLATASSIST_WOOD_AFFECT_POTION;
 				}

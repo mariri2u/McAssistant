@@ -2,6 +2,7 @@ package mariri.mcassistant.helper;
 
 import java.util.List;
 
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -70,6 +71,7 @@ public class Lib {
 	
 	public static int getPotionAffectedLevel(EntityLivingBase entity, int id){
 		int result = 0;
+		if(id <= 0){ return 0; }
 		PotionEffect effect = entity.getActivePotionEffect(Potion.potionTypes[id]);
 		if(effect != null){
 			result |= effect.getAmplifier() + 1;
@@ -78,7 +80,8 @@ public class Lib {
 	}
 	
 	public static boolean isPotionAffected(EntityLivingBase entity, int id, int lv){
-		boolean result = false;;
+		boolean result = false;
+		if(id <= 0){ return true; }
 		PotionEffect effect = entity.getActivePotionEffect(Potion.potionTypes[id]);
 		if(lv <= 0){
 			result |= true;
@@ -86,6 +89,25 @@ public class Lib {
 			result |= getPotionAffectedLevel(entity, id) >= lv;
 		}
 		return result;
+	}
+	
+	public static boolean isEnchanted(EntityPlayer entity, int id, int lv){
+		boolean result = false;
+		int l = EnchantmentHelper.getEnchantmentLevel(id, entity.getCurrentEquippedItem());
+		result = l >= lv;
+		return result;
+	}
+	
+	public static boolean isEnchanted(EntityPlayer entity, int[] enchant){
+		if(enchant == null || enchant.length != 2){
+			return true;
+		}else{
+			return isEnchanted(entity, enchant[0], enchant[1]);
+		}
+	}
+	
+	public static int getEnchentLevel(EntityPlayer entity, int enchant){
+		return EnchantmentHelper.getEnchantmentLevel(enchant, entity.getCurrentEquippedItem());
 	}
 	
 	public static boolean isPotionAffected(EntityLivingBase entity, int[] pot){

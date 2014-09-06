@@ -242,7 +242,14 @@ public class EdgeHarvester {
 		int edmeta = world.getBlockMetadata(edge.x, edge.y, edge.z);
 		world.setBlockToAir(edge.x, edge.y, edge.z);
 		edblk.onBlockDestroyedByPlayer(world, edge.x, edge.y, edge.z, edmeta);
-		if(silktouch && edblk.canSilkHarvest(world, player, edge.x, edge.y, edge.z, edmeta)){
+		if(horizonalMaxOffset > 0 && targetIdentify){
+			List<ItemStack> drop = edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune);
+			if(drop != null && drop.size() > 0 && dropAfter) {
+				for(ItemStack d : drop){ drops.add(d); }
+//				drops.addAll(drop);
+			}
+			else { Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune)); }
+		}else if(silktouch && edblk.canSilkHarvest(world, player, edge.x, edge.y, edge.z, edmeta)){
 			ItemStack drop = new ItemStack(edblk, 1, edmeta);
 			if(edblk == Blocks.lit_redstone_ore){
 				drop = new ItemStack(Blocks.redstone_ore);
