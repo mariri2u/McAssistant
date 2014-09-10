@@ -88,7 +88,8 @@ public class PlayerHarvestEventHandler {
 						Lib.compareCurrentToolLevel(player, CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL)){
 					if(CUTDOWN_CHAIN_BREAK_LEAVES){
 						if(block == Blocks.red_mushroom_block){
-							harvester.setIdentifyBlocks(new ItemStack[] { new ItemStack(Blocks.brown_mushroom_block) });
+							harvester.setIdentifyBlocks(new ItemStack[] { new ItemStack(Blocks.brown_mushroom_block) })
+								.setFindRange(2);
 						}else if(block == Blocks.brown_mushroom_block){
 							harvester.setIdentifyBlocks(new ItemStack[] { new ItemStack(Blocks.red_mushroom_block) });
 						}else{
@@ -115,10 +116,12 @@ public class PlayerHarvestEventHandler {
 				EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, true, MINEASSIST_MAX_DISTANCE);
 				harvester.setCheckMetadata(true);
 				// レッドストーンは光っていても同一視
-				if(block == Blocks.redstone_ore){
-					harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.lit_redstone_ore) });
-					harvester.setCheckMetadata(false);
-				}else if(block == Blocks.lit_redstone_ore){
+				// 光ってないレッドストーンを壊すとクラッシュする
+//				if(block == Blocks.redstone_ore){
+//					harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.lit_redstone_ore) });
+//					harvester.setCheckMetadata(false);
+//				}else if(block == Blocks.lit_redstone_ore){
+				if(block == Blocks.lit_redstone_ore){
 					harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.redstone_ore) });
 					harvester.setCheckMetadata(false);
 				}

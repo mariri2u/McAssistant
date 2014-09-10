@@ -19,7 +19,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class McAssistant {
 
         public static final String MODID = "McAssistant";
-        public static final String VERSION = "1.7.2-1.2";
+        public static final String VERSION = "1.7.2-1.2a";
         private static final String CATEGORY_ITEM_REGISTER = "ItemRegister";
         
         @EventHandler // used in 1.6.2

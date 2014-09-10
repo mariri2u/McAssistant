@@ -28,6 +28,7 @@ public class EdgeHarvester {
 	private int horizonalMaxOffset;
 	private Coord coreCoord;
 	private boolean idBreakTool;
+	private int findRange;
 	
 	protected World world;
 	protected EntityPlayer player;
@@ -51,6 +52,7 @@ public class EdgeHarvester {
 		this.horizonalMaxOffset = 0;
 		this.drops = new LinkedList<ItemStack>();
 		this.idBreakTool = true;
+		this.findRange = 1;
 	}
 	
 	public EdgeHarvester setIdentifyBlocks(ItemStack[] blocks){
@@ -85,6 +87,11 @@ public class EdgeHarvester {
 	
 	public EdgeHarvester setIdentifyBreakTool(boolean value){
 		this.idBreakTool = value;
+		return this;
+	}
+	
+	public EdgeHarvester setFindRange(int value){
+		this.findRange = value;
 		return this;
 	}
 	
@@ -160,9 +167,9 @@ public class EdgeHarvester {
 		Coord edge = path.getLast().copy();
 		Coord prev = edge.copy();
 		int dist = getDistance(edge, square);
-		for(int x = prev.x - 1; x <= prev.x + 1; x++){
-			for(int y = prev.y + 1; y >= prev.y - 1; y--){
-				for(int z = prev.z - 1; z <= prev.z + 1; z++){
+		for(int x = prev.x - findRange; x <= prev.x + findRange; x++){
+			for(int y = prev.y + findRange; y >= prev.y - findRange; y--){
+				for(int z = prev.z - findRange; z <= prev.z + findRange; z++){
 					int d = getDistance(x, y, z, square);
 					if((below ? true : y >= path.getFirst().y) && matchBlock(x, y, z) && dist <= d && d <= maxDist){
 						// -- 葉っぱブロックの距離判定 --
@@ -240,8 +247,10 @@ public class EdgeHarvester {
 		Coord edge = path.getLast();
 		Block edblk = world.getBlock(edge.x, edge.y, edge.z);
 		int edmeta = world.getBlockMetadata(edge.x, edge.y, edge.z);
+		int exp = edblk.getExpDrop(world, edmeta, fortune);
 		world.setBlockToAir(edge.x, edge.y, edge.z);
 		edblk.onBlockDestroyedByPlayer(world, edge.x, edge.y, edge.z, edmeta);
+		// 葉っぱブロック破壊時はシルクタッチを無視する
 		if(horizonalMaxOffset > 0 && targetIdentify){
 			List<ItemStack> drop = edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune);
 			if(drop != null && drop.size() > 0 && dropAfter) {
@@ -249,6 +258,7 @@ public class EdgeHarvester {
 //				drops.addAll(drop);
 			}
 			else { Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune)); }
+			edblk.dropXpOnBlockBreak(world, edge.x, edge.y, edge.z, exp);
 		}else if(silktouch && edblk.canSilkHarvest(world, player, edge.x, edge.y, edge.z, edmeta)){
 			ItemStack drop = new ItemStack(edblk, 1, edmeta);
 			if(edblk == Blocks.lit_redstone_ore){
@@ -263,9 +273,10 @@ public class EdgeHarvester {
 //				drops.addAll(drop);
 			}
 			else { Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune)); }
+			edblk.dropXpOnBlockBreak(world, edge.x, edge.y, edge.z, exp);
 		}
 		if(		player.inventory.getCurrentItem() != null && edblk != Blocks.air &&
-				(!targetIdentify || idBreakTool) &&
+				(!targetIdentify || idBreakTool) /* 葉っぱブロック破壊時は耐久消費無し */ &&
 				player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
 			player.destroyCurrentEquippedItem();
 		}
