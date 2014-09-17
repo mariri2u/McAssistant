@@ -91,7 +91,7 @@ public class Comparator {
 			for(String regex : classes){
 				Class clazz = obj.getClass();
 				while(clazz != null){
-					result |= clazz.getCanonicalName().matches(regex);
+					result |= clazz.getCanonicalName().toLowerCase().matches(regex);
 					clazz = clazz.getSuperclass();
 				}
 			}
@@ -103,7 +103,7 @@ public class Comparator {
 		boolean result = false;
 		try{
 			for(String regex : names){
-				result |= item.getUnlocalizedName().matches(regex);
+				result |= item.getUnlocalizedName().toLowerCase().matches(regex);
 			}
 		}catch(NullPointerException e){}
 		return result;
@@ -113,7 +113,7 @@ public class Comparator {
 		boolean result = false;
 		try{
 			for(String regex : names){
-				result |= b.getUnlocalizedName().matches(regex);
+				result |= b.getUnlocalizedName().toLowerCase().matches(regex);
 			}
 		}catch(NullPointerException e){}
 		return result;
@@ -133,7 +133,7 @@ public class Comparator {
 		    	if(oreId >= 0){
 		    		String oreName = OreDictionary.getOreName(oreId);
 		    		for(String regex : oredicts){
-		    			if(oreName.matches(regex)){
+		    			if(oreName.toLowerCase().matches(regex)){
 		    				result = OreDictionary.getOres(oreName);
 		    			}
 		    		}

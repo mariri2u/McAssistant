@@ -9,8 +9,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 
 public class EdgeHarvester {
@@ -144,18 +142,19 @@ public class EdgeHarvester {
 			Coord target = path.getFirst();
 			Lib.spawnItem(world, target.x, target.y, target.z, drops);
 		}
-		if(potion != null && potion.length > 0){
-			for(int[] pote : potion){
-				if(pote != null && pote.length == 3){
-					PotionEffect effect = player.getActivePotionEffect(Potion.potionTypes[pote[0]]);
-					if(effect != null && effect.getAmplifier() == pote[1] - 1){
-						player.addPotionEffect(new PotionEffect(pote[0], effect.getDuration() + pote[2] * count, pote[1] - 1));
-					}else{
-						player.addPotionEffect(new PotionEffect(pote[0], pote[2] * count, pote[1] - 1));
-					}
-				}
-			}
-		}
+		Lib.affectPotionEffect(player, potion, count);
+//		if(potion != null && potion.length > 0){
+//			for(int[] pote : potion){
+//				if(pote != null && pote.length == 3){
+//					PotionEffect effect = player.getActivePotionEffect(Potion.potionTypes[pote[0]]);
+//					if(effect != null && effect.getAmplifier() == pote[1] - 1){
+//						player.addPotionEffect(new PotionEffect(pote[0], effect.getDuration() + pote[2] * count, pote[1] - 1));
+//					}else{
+//						player.addPotionEffect(new PotionEffect(pote[0], pote[2] * count, pote[1] - 1));
+//					}
+//				}
+//			}
+//		}
 		return count;
 	}
 	

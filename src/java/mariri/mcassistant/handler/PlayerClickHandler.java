@@ -23,8 +23,14 @@ public class PlayerClickHandler {
 	
 	public static boolean CROPASSIST_ENABLE = true;
 	public static int CROPASSIST_REQUIRE_TOOL_LEVEL;
+	public static boolean CROPASSIST_AREA_ENABLE;
+	public static boolean CROPASSIST_AREAPLUS_ENABLE;
+	public static int CROPASSIST_AREA_REQUIRE_TOOL_LEVEL;
+	public static int[][] CROPASSIST_AREA_AFFECT_POTION;
 	
 	public static boolean LEAVEASSIST_ENABLE;
+	public static boolean LEAVEASSIST_AREAPLUS_ENABLE;
+	public static int[][] LEAVEASSIST_AFFECT_POTION;
 	
 	public static boolean BEDASSIST_ENABLE;
 	public static boolean BEDASSIST_SET_RESPAWN_ANYTIME;
@@ -72,14 +78,17 @@ public class PlayerClickHandler {
 				Comparator.LEAVE.compareBlock(block, meta) &&
 				Comparator.AXE.compareCurrentItem(e.entityPlayer)){
 //			block.breakBlock(world, e.x, e.y, e.z, block, meta);
-			for(int x = e.x - 1; x <= e.x + 1; x++){
-				for(int y = e.y - 1; y <= e.y + 1; y++){
-					for(int z = e.z - 1; z <= e.z + 1; z++){
+			int count = 0;
+			int area = (LEAVEASSIST_AREAPLUS_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, 3)) ? 2 : 1;
+			for(int x = e.x - area; x <= e.x + area; x++){
+				for(int y = e.y - area; y <= e.y + area; y++){
+					for(int z = e.z - area; z <= e.z + area; z++){
 						Block b = world.getBlock(x, y, z);
 						int m = world.getBlockMetadata(x, y, z);
 						if(Comparator.LEAVE.compareBlock(b, m)){
 							b.dropBlockAsItem(world, x, y, z, m, 0);
 							world.setBlockToAir(x, y, z);
+							count++;
 						}
 					}
 				}
@@ -87,6 +96,7 @@ public class PlayerClickHandler {
 			if(e.entityPlayer.inventory.getCurrentItem().attemptDamageItem(1, e.entityPlayer.getRNG())){
 				e.entityPlayer.destroyCurrentEquippedItem();
 			}
+			Lib.affectPotionEffect(e.entityPlayer, LEAVEASSIST_AFFECT_POTION, count);
 			e.setCanceled(true);
 		}
 		// ベッド補助機能
@@ -121,13 +131,34 @@ public class PlayerClickHandler {
 				Comparator.HOE.compareCurrentItem(e.entityPlayer) &&
 				Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_REQUIRE_TOOL_LEVEL)){
 
-			// 収穫後の連続クリック対策（MOD独自の方法で成長を管理している場合は対象外）
-			if(block instanceof BlockContainer || meta > 0){
-				CropReplanter harvester = new CropReplanter(world, e.entityPlayer, e.x, e.y, e.z, block, meta);
-				block.harvestBlock(world, e.entityPlayer, e.x, e.y, e.z, meta);
-				world.setBlockToAir(e.x, e.y, e.z);
-				harvester.findDrops();
-				harvester.harvestCrop();
+			if(CROPASSIST_AREA_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_AREA_REQUIRE_TOOL_LEVEL)){
+				int count = 0;
+				int area = (CROPASSIST_AREAPLUS_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, 3)) ? 2 : 1;
+				for(int xi = -1 * area; xi <= area; xi++){
+					for(int zi = -1 * area; zi <= area; zi++){
+						Block b = world.getBlock(e.x + xi, e.y, e.z + zi);
+						int m = world.getBlockMetadata(e.x + xi, e.y, e.z + zi);
+						if(block == b && meta == m && (b instanceof BlockContainer || m > 0)){
+							CropReplanter harvester = new CropReplanter(world, e.entityPlayer, e.x + xi, e.y, e.z + zi, b, m);
+							harvester.setAffectToolDamage(xi == 0 && zi == 0);
+							b.harvestBlock(world, e.entityPlayer, e.x + xi, e.y, e.z + zi, m);
+							world.setBlockToAir(e.x + xi, e.y, e.z + zi);
+							harvester.findDrops();
+							harvester.harvestCrop();
+							count++;
+						}
+					}
+				}
+				Lib.affectPotionEffect(e.entityPlayer, CROPASSIST_AREA_AFFECT_POTION, count);
+			}else{
+				// 収穫後の連続クリック対策（MOD独自の方法で成長を管理している場合は対象外）
+				if(block instanceof BlockContainer || meta > 0){
+					CropReplanter harvester = new CropReplanter(world, e.entityPlayer, e.x, e.y, e.z, block, meta);
+					block.harvestBlock(world, e.entityPlayer, e.x, e.y, e.z, meta);
+					world.setBlockToAir(e.x, e.y, e.z);
+					harvester.findDrops();
+					harvester.harvestCrop();
+				}
 			}
 			e.useItem = Event.Result.DENY;
 //			e.setCanceled(true);

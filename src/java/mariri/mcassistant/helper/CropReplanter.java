@@ -26,6 +26,7 @@ public class CropReplanter {
 	protected int z;
 	protected Block block;
 	protected int metadata;
+	protected boolean isAffectToolDamage;
 	
 	private List<ItemStack> drops;
 	
@@ -37,7 +38,13 @@ public class CropReplanter {
 		this.z = z;
 		this.block = block;
 		this.metadata = metadata;
+		this.isAffectToolDamage = true;
 		drops = new ArrayList<ItemStack>();
+	}
+	
+	public CropReplanter setAffectToolDamage(boolean value){
+		this.isAffectToolDamage = value;
+		return this;
 	}
 	
 	public void cancelHarvest(){
@@ -117,7 +124,7 @@ public class CropReplanter {
 		if(seed != null){
 			// 植え直しできた場合
 			if(seed.getItem().onItemUse(seed, player, world, x, y - 1, z, 1, 0, 0, 0)){
-				if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
+				if(isAffectToolDamage && player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
 					player.destroyCurrentEquippedItem();
 				}
 			}

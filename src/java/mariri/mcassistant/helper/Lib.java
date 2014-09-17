@@ -16,6 +16,23 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 
 public class Lib {
+	
+	public static void affectPotionEffect(EntityPlayer player, int[][] potion, int count){
+		if(potion != null && potion.length > 0){
+			for(int[] pote : potion){
+				if(pote != null && pote.length == 3){
+					PotionEffect effect = player.getActivePotionEffect(Potion.potionTypes[pote[0]]);
+					if(effect != null && effect.getAmplifier() == pote[1] - 1){
+						player.addPotionEffect(new PotionEffect(pote[0], effect.getDuration() + pote[2] * count, pote[1] - 1));
+					}else{
+						player.addPotionEffect(new PotionEffect(pote[0], pote[2] * count, pote[1] - 1));
+					}
+				}
+			}
+		}
+	}
+	
+	
 	public static Item.ToolMaterial getMaterial(String material){
 		Item.ToolMaterial[] marr = Item.ToolMaterial.values();
 		Item.ToolMaterial mm = null;
@@ -136,7 +153,10 @@ public class Lib {
 	}
 	
     public static String[] splitAndTrim(String str, String separator){
-        String[] aaa = str.split(separator);
+    	return splitAndTrim(str,separator, true);
+    }
+    public static String[] splitAndTrim(String str, String separator, boolean lower){
+        String[] aaa = lower ? str.toLowerCase().split(separator) : str.split(separator);
         String[] ids = new String[aaa.length];
         if("".equals(str)){
         	ids = null;

@@ -1,5 +1,6 @@
 package mariri.mcassistant;
 
+import mariri.mcassistant.handler.EntityInteractHandler;
 import mariri.mcassistant.handler.EntityJoinWorldHandler;
 import mariri.mcassistant.handler.PlayerClickHandler;
 import mariri.mcassistant.handler.PlayerHarvestEventHandler;
@@ -19,7 +20,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class McAssistant {
 
         public static final String MODID = "McAssistant";
-        public static final String VERSION = "1.7.2-1.2a";
+        public static final String VERSION = "1.7.2-1.3";
         private static final String CATEGORY_ITEM_REGISTER = "ItemRegister";
         
         @EventHandler // used in 1.6.2
@@ -47,6 +48,10 @@ public class McAssistant {
 	        // CropHarvesterSetting
 	        PlayerClickHandler.CROPASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cropassistEnable", true).getBoolean(true);
 	        PlayerClickHandler.CROPASSIST_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cropassistRequireToolLevel", 0).getInt();
+	        PlayerClickHandler.CROPASSIST_AREA_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cropassistAreaEnable", true).getBoolean(true);
+	        PlayerClickHandler.CROPASSIST_AREA_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cropassistAreaRequireToolLevel", 2).getInt();
+	        PlayerClickHandler.CROPASSIST_AREAPLUS_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cropassistAreaPlusEnable", true).getBoolean(true);
+	        PlayerClickHandler.CROPASSIST_AREA_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cropassistAreaAffectPotion", "").getString(), ",", ":");
 	        CropReplanter.CROPASSIST_SUPLY = config.get(Configuration.CATEGORY_GENERAL, "cropassistSuplyFromInventory", true).getBoolean(true);
 	        CropReplanter.CROPASSIST_AUTOCRAFT = config.get(Configuration.CATEGORY_GENERAL, "cropassistAutoCraft", true).getBoolean(true);
 
@@ -93,6 +98,8 @@ public class McAssistant {
 	        
 	        // LeaveAssist
 	        PlayerClickHandler.LEAVEASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "leaveassistEnable", true).getBoolean(true);
+	        PlayerClickHandler.LEAVEASSIST_AREAPLUS_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "leaveassistAreaPlusEnable", true).getBoolean(true);
+	        PlayerClickHandler.LEAVEASSIST_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "leaveassistAffectPotion", "").getString(), ",", ":");
 
 	        // BedAssist
 	        PlayerClickHandler.BEDASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "bedassistEnable", true).getBoolean(true);
@@ -101,13 +108,18 @@ public class McAssistant {
 	        PlayerClickHandler.BEDASSIST_NO_SLEEP = config.get(Configuration.CATEGORY_GENERAL, "bedassistNoSleep", false).getBoolean(false);
 	        PlayerClickHandler.BEDASSIST_NO_SLEEP_MESSAGE = config.get(Configuration.CATEGORY_GENERAL, "bedassistNoSleepMessage", "You can't sleep!!").getString();
      
+	        // BreedAssist
+	        EntityInteractHandler.BREEDASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "breedassistEnable", true).getBoolean(true);
+	        EntityInteractHandler.BREEDASSIST_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "breedassistRadius", 2).getInt();
+	        EntityInteractHandler.BREEDASSIST_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "breedassistAffectPotion", "").getString(), ",", ":");
+   
 	        // Converter
 	        EntityJoinWorldHandler.UNIFY_ENEBLE = config.get(Configuration.CATEGORY_GENERAL, "autounifyEnable", true).getBoolean(true);
 	        
 	        // RegisterItem
 	        Comparator.UNIFY.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "unifyOreDictionary", "ore.*,").getString(), ","));
 	        Comparator.ORE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreNames", "").getString(), ","));
-	        Comparator.ORE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreClasses", ".*BlockOre.*, .*BlockRedstoneOre.*, .*BlockGlowStone.*, .*BlockObsidian.*").getString(), ","));
+	        Comparator.ORE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreClasses", ".*BlockOre.*, .*BlockRedstoneOre.*, .*BlockGlowstone.*, .*BlockObsidian.*").getString(), ","));
 	        Comparator.ORE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreOreDictionary", "ore.*").getString(), ","));
 	        Comparator.SHOVEL.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelNames", "").getString(), ","));
 	        Comparator.SHOVEL.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelClasses", ".*ItemSpade.*").getString(), ","));
@@ -118,32 +130,32 @@ public class McAssistant {
 	        Comparator.HOE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeNames", "").getString(), ","));
 	        Comparator.HOE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeClasses", ".*ItemHoe.*").getString(), ","));
 	        Comparator.HOE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeOreDictionary", "").getString(), ","));
-	        Comparator.SEED.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedNames", ".*[sS]eed.*").getString(), ","));
-	        Comparator.SEED.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedClasses", ".*IPlantable.*, .*[sS]eed.*").getString(), ","));
+	        Comparator.SEED.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedNames", ".*Seed.*").getString(), ","));
+	        Comparator.SEED.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedClasses", ".*IPlantable.*, .*Seed.*").getString(), ","));
 	        Comparator.SEED.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedOreDictionary", "").getString(), ","));
-	        Comparator.CROP.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropNames", ".*[cC]rop.*").getString(), ","));
-	        Comparator.CROP.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropClasses", ".*[cC]rop.*, .*[bB]ush.*").getString(), ","));
+	        Comparator.CROP.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropNames", ".*Crop.*").getString(), ","));
+	        Comparator.CROP.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropClasses", ".*Crop.*, .*Bush.*").getString(), ","));
 	        Comparator.CROP.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropOreDictionary", "").getString(), ","));
 	        Comparator.AXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeNames", "").getString(), ","));
 	        Comparator.AXE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeClasses", ".*ItemAxe.*").getString(), ","));
 	        Comparator.AXE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeOreDictionarys", "").getString(), ","));
-	        Comparator.LOG.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logNames", ".*[mM]ushroom.*").getString(), ","));
-	        Comparator.LOG.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logClasses", ".*[lL]og.*").getString(), ","));
+	        Comparator.LOG.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logNames", ".*Mushroom.*").getString(), ","));
+	        Comparator.LOG.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logClasses", ".*Log.*").getString(), ","));
 	        Comparator.LOG.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logOreDictionary", "logWood").getString(), ","));
-	        Comparator.DIRT.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtNames", "").getString(), ","));
-	        Comparator.DIRT.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtClasses", ".*[gG]rass.*, .*[dD]irt.*, .*[mM]ycelium.*, .*[sS]and, .*[cC]lay.*, .*[gG]ravel.*").getString(), ","));
+	        Comparator.DIRT.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtNames", ".*Grass.*, .*Dirt.*").getString(), ","));
+	        Comparator.DIRT.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtClasses", ".*Grass.*, .*Dirt.*, .*Mycelium.*, .*Sand, .*Clay.*, .*Gravel.*").getString(), ","));
 	        Comparator.DIRT.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtOreDictionary", "").getString(), ","));
-	        Comparator.STONE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneNames", ".*[sS]tone.*, .*[bB]rick.*, .*[cC]lay.*, .*[fF]ence.*, .*[wW]all.*, .*[iI]ron.*").getString(), ","));
-	        Comparator.STONE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneClasses", ".*[sS]tone.*, .*[nN]etherrack.*, .*[sS]ilver[fF]ish.*").getString(), ","));
+	        Comparator.STONE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneNames", ".*Stone.*, .*Brick.*, .*Clay.*, .*Fence.*, .*Wall.*, .*Iron.*").getString(), ","));
+	        Comparator.STONE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneClasses", ".*Stone.*, .*Netherrack.*, .*SilverFish.*").getString(), ","));
 	        Comparator.STONE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneOreDictionary", "").getString(), ","));
-	        Comparator.WOOD.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodNames", ".*[wW]ood.*, .*[pP]lank.*").getString(), ","));
-	        Comparator.WOOD.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodClasses", ".*[wW]ood.*, .*[pP]lank.*, .*[bB]lock[fF]ence.*").getString(), ","));
+	        Comparator.WOOD.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodNames", ".*Wood.*, .*Plank.*").getString(), ","));
+	        Comparator.WOOD.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodClasses", ".*Wood.*, .*Plank.*, .*BlockFence.*").getString(), ","));
 	        Comparator.WOOD.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodOreDictionary", "plankWood").getString(), ","));
-	        Comparator.SAPLING.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingNames", ".*[sS]apling.*").getString(), ","));
-	        Comparator.SAPLING.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingClasses", ".*[sS]apling.*").getString(), ","));
+	        Comparator.SAPLING.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingNames", ".*Sapling.*").getString(), ","));
+	        Comparator.SAPLING.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingClasses", ".*Sapling.*").getString(), ","));
 	        Comparator.SAPLING.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingOreDictionary", "").getString(), ","));
-	        Comparator.LEAVE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "leaveNames", ".*[lL]eave.*").getString(), ","));
-	        Comparator.LEAVE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "leaveClasses", ".*[lL]eave.*").getString(), ","));
+	        Comparator.LEAVE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "leaveNames", ".*Leave.*").getString(), ","));
+	        Comparator.LEAVE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "leaveClasses", ".*Leave.*").getString(), ","));
 	        Comparator.LEAVE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "leaveOreDictionary", "").getString(), ","));
 
 	        config.save();
@@ -165,5 +177,8 @@ public class McAssistant {
         	
         	// TorchAssist
         	MinecraftForge.EVENT_BUS.register(new PlayerClickHandler());
+        	
+        	// BreedAssist
+        	MinecraftForge.EVENT_BUS.register(EntityInteractHandler.INSTANCE);
       }
 }
