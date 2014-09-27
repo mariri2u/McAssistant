@@ -170,16 +170,13 @@ public class EdgeHarvester {
 			for(int y = prev.y + findRange; y >= prev.y - findRange; y--){
 				for(int z = prev.z - findRange; z <= prev.z + findRange; z++){
 					int d = getDistance(x, y, z, square);
-					if((below ? true : y >= path.getFirst().y) && matchBlock(x, y, z) && dist <= d && d <= maxDist){
-						// -- 葉っぱブロックの距離判定 --
-						if(!currentIdentify || horizonalMaxOffset <= 0 || getHorizonalDistance(x, y, z, true) <= horizonalMaxOffset){
-							edge.x = x;
-							edge.y = y;
-							edge.z = z;
-							path.addLast(new Coord(x, y, z));
-							dist = d;
-							targetIdentify = currentIdentify;
-						}
+					if(isHarvestableEdge(x, y, z, edge, prev, dist, d)){
+						edge.x = x;
+						edge.y = y;
+						edge.z = z;
+						path.addLast(new Coord(x, y, z));
+						dist = d;
+						targetIdentify = currentIdentify;
 					}
 				}
 			}
@@ -197,6 +194,27 @@ public class EdgeHarvester {
 		return dist;
 	}
 	
+	private boolean isHarvestableEdge(int x, int y, int z, Coord edge, Coord prev, boolean square){
+		return isHarvestableEdge(x, y, z, edge, prev, getDistance(edge, square), getDistance(prev, square));
+	}
+	
+	private boolean isHarvestableEdge(int x, int y, int z, Coord edge, Coord prev, int edgeDist, int prevDist){
+		boolean result = false;
+		if(		(below || y >= edge.y) &&
+				matchBlock(x, y, z) && edgeDist <= prevDist && prevDist <= maxDist){
+			if(horizonalMaxOffset > 0){
+				if(currentIdentify && getHorizonalDistance(x, y, z, true) <= horizonalMaxOffset){
+					result = true;
+				}else if(world.getBlock(prev.x, prev.y, prev.z) == block){
+					result = true;
+				}
+			}else{
+				result = true;
+			}
+		}
+		return result;
+	}
+	
 //	private boolean checkIdentify(int x, int y, int z){
 //		boolean result = false;
 //		for(ItemStack identify : identifies){
@@ -209,16 +227,15 @@ public class EdgeHarvester {
 		boolean result = false;
 		result |= matchBlock(x, y, z, block, metadata);
 		currentIdentify = false;
-		if(!result && identifies == null && idCompare != null){
+		if(!result && idCompare != null){
 			Block b = world.getBlock(x, y, z);
 			int m = world.getBlockMetadata(x, y, z);
-			System.out.println("Block: " + b.getUnlocalizedName() + " " + m);
 			if(idCompare.compareBlock(b, m)){
-				identifies = new ItemStack[1];
-				identifies[0] = new ItemStack(b, m);
-				currentIdentify = result;
+				result = true;
+				currentIdentify = true;
 			}
-		}else if(!result && identifies != null){
+		}
+		if(!result && identifies != null){
 			for(ItemStack identify : identifies){
 				result |= matchBlock(x, y, z, ((ItemBlock)identify.getItem()).field_150939_a, identify.getItemDamage());
 			}
@@ -250,15 +267,7 @@ public class EdgeHarvester {
 		world.setBlockToAir(edge.x, edge.y, edge.z);
 		edblk.onBlockDestroyedByPlayer(world, edge.x, edge.y, edge.z, edmeta);
 		// 葉っぱブロック破壊時はシルクタッチを無視する
-		if(horizonalMaxOffset > 0 && targetIdentify){
-			List<ItemStack> drop = edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune);
-			if(drop != null && drop.size() > 0 && dropAfter) {
-				for(ItemStack d : drop){ drops.add(d); }
-//				drops.addAll(drop);
-			}
-			else { Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune)); }
-			edblk.dropXpOnBlockBreak(world, edge.x, edge.y, edge.z, exp);
-		}else if(silktouch && edblk.canSilkHarvest(world, player, edge.x, edge.y, edge.z, edmeta)){
+		if(isSilkHarvest(edblk, edmeta, edge)){
 			ItemStack drop = new ItemStack(edblk, 1, edmeta);
 			if(edblk == Blocks.lit_redstone_ore){
 				drop = new ItemStack(Blocks.redstone_ore);
@@ -267,24 +276,35 @@ public class EdgeHarvester {
 			else{ Lib.spawnItem(world, edge.x, edge.y, edge.z, drop); }
 		}else{
 			List<ItemStack> drop = edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune);
-			if(drop != null && drop.size() > 0 && dropAfter) {
+			if(dropAfter && drop != null && drop.size() > 0) {
 				for(ItemStack d : drop){ drops.add(d); }
-//				drops.addAll(drop);
 			}
 			else { Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune)); }
 			edblk.dropXpOnBlockBreak(world, edge.x, edge.y, edge.z, exp);
 		}
+		// 武器の耐久値を減らす
 		if(		player.inventory.getCurrentItem() != null && edblk != Blocks.air &&
 				(!targetIdentify || idBreakTool) /* 葉っぱブロック破壊時は耐久消費無し */ &&
 				player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
 			player.destroyCurrentEquippedItem();
+            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
 		}
-
 		
 		if(path.size() > 1){
 			path.removeLast();
 		}
 		count++;
+	}
+	
+	private boolean isSilkHarvest(Block block, int meta, Coord coord){
+		boolean result = false;
+		boolean silktouch = EnchantmentHelper.getSilkTouchModifier(player);
+		if(horizonalMaxOffset > 0 && targetIdentify){
+			result = false;
+		}else if(silktouch && block.canSilkHarvest(world, player, coord.x, coord.y, coord.z, meta)){
+			result = true;
+		}
+		return result;
 	}
 	
 	protected class Coord {

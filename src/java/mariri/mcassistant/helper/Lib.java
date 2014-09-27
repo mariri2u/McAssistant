@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 public class Lib {
 	
 	public static void affectPotionEffect(EntityPlayer player, int[][] potion, int count){
-		if(potion != null && potion.length > 0){
+		if(count > 1 && potion != null && potion.length > 0){
 			for(int[] pote : potion){
 				if(pote != null && pote.length == 3){
 					PotionEffect effect = player.getActivePotionEffect(Potion.potionTypes[pote[0]]);

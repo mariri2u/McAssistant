@@ -93,8 +93,10 @@ public class PlayerClickHandler {
 					}
 				}
 			}
+            world.playSoundAtEntity(e.entityPlayer, Block.soundTypeGrass.getBreakSound(), Block.soundTypeGrass.getVolume(), Block.soundTypeGrass.getPitch());
 			if(e.entityPlayer.inventory.getCurrentItem().attemptDamageItem(1, e.entityPlayer.getRNG())){
 				e.entityPlayer.destroyCurrentEquippedItem();
+	            world.playSoundAtEntity(e.entityPlayer, "random.break", 1.0F, 1.0F);
 			}
 			Lib.affectPotionEffect(e.entityPlayer, LEAVEASSIST_AFFECT_POTION, count);
 			e.setCanceled(true);

@@ -126,6 +126,7 @@ public class CropReplanter {
 			if(seed.getItem().onItemUse(seed, player, world, x, y - 1, z, 1, 0, 0, 0)){
 				if(isAffectToolDamage && player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
 					player.destroyCurrentEquippedItem();
+		            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
 				}
 			}
 		}
