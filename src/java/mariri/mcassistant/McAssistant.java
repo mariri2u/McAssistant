@@ -1,9 +1,9 @@
 package mariri.mcassistant;
 
+import mariri.mcassistant.handler.BlockBreakEventHandler;
 import mariri.mcassistant.handler.EntityInteractHandler;
 import mariri.mcassistant.handler.EntityJoinWorldHandler;
 import mariri.mcassistant.handler.PlayerClickHandler;
-import mariri.mcassistant.handler.PlayerHarvestEventHandler;
 import mariri.mcassistant.helper.Comparator;
 import mariri.mcassistant.helper.CropReplanter;
 import mariri.mcassistant.helper.Lib;
@@ -20,7 +20,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class McAssistant {
 
         public static final String MODID = "McAssistant";
-        public static final String VERSION = "1.7.2-1.3a-dev2";
+        public static final String VERSION = "1.7.2-1.3a";
         private static final String CATEGORY_ITEM_REGISTER = "ItemRegister";
         
         @EventHandler // used in 1.6.2
@@ -30,20 +30,21 @@ public class McAssistant {
 	        config.load();
 	        
 	        // EdgeHarvesterSetting
-	        PlayerHarvestEventHandler.CUTDOWN_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cutdownEnable", true).getBoolean(true);
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN = config.get(Configuration.CATEGORY_GENERAL, "cutdownChain", true).getBoolean(true);
-	        PlayerHarvestEventHandler.CUTDOWN_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "cutdownMaxDistance", 30).getInt();
-	        PlayerHarvestEventHandler.CUTDOWN_BELOW = config.get(Configuration.CATEGORY_GENERAL, "cutdownBelow", false).getBoolean(false);
-	        PlayerHarvestEventHandler.CUTDOWN_ONLY_ROOT = config.get(Configuration.CATEGORY_GENERAL, "cutdownOnlyRoot", true).getBoolean(true);
+	        BlockBreakEventHandler.CUTDOWN_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cutdownEnable", true).getBoolean(true);
+	        BlockBreakEventHandler.CUTDOWN_FROM_TOP_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cutdownFromTopEnable", true).getBoolean(true);
+	        BlockBreakEventHandler.CUTDOWN_CHAIN = config.get(Configuration.CATEGORY_GENERAL, "cutdownChain", true).getBoolean(true);
+	        BlockBreakEventHandler.CUTDOWN_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "cutdownMaxDistance", 30).getInt();
+	        BlockBreakEventHandler.CUTDOWN_BELOW = config.get(Configuration.CATEGORY_GENERAL, "cutdownBelow", false).getBoolean(false);
+	        BlockBreakEventHandler.CUTDOWN_ONLY_ROOT = config.get(Configuration.CATEGORY_GENERAL, "cutdownOnlyRoot", true).getBoolean(true);
 //	        PlayerHarvestEventHandler.CUTDOWN_REPLANT = config.get(Configuration.CATEGORY_GENERAL, "cutdownReplant", true).getBoolean(true);
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequirePotionLevel", "").getString(), ":");
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainAffectPotion", "").getString(), ",", ":");
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireHunger", 0).getInt();
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireToolLevel", 2).getInt();
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REQUIRE_ENCHANT_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireEnchantLevel", "32:1").getString(), ":");
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_BREAK_LEAVES = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainBreakLeaves", true).getBoolean(true);
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_REPLANT = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainReplant", true).getBoolean(true);
-	        PlayerHarvestEventHandler.CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainMaxHorizonalDistance", 2).getInt();
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequirePotionLevel", "").getString(), ":");
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainAffectPotion", "").getString(), ",", ":");
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireHunger", 0).getInt();
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireToolLevel", 2).getInt();
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_ENCHANT_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireEnchantLevel", "32:1").getString(), ":");
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_BREAK_LEAVES = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainBreakLeaves", true).getBoolean(true);
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REPLANT = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainReplant", true).getBoolean(true);
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainMaxHorizonalDistance", 2).getInt();
 
 	        // CropHarvesterSetting
 	        PlayerClickHandler.CROPASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cropassistEnable", true).getBoolean(true);
@@ -56,42 +57,42 @@ public class McAssistant {
 	        CropReplanter.CROPASSIST_AUTOCRAFT = config.get(Configuration.CATEGORY_GENERAL, "cropassistAutoCraft", true).getBoolean(true);
 
 	        // MineAssist
-	        PlayerHarvestEventHandler.MINEASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "mineassistEnable", true).getBoolean(true);
-	        PlayerHarvestEventHandler.MINEASSIST_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "mineassistMaxDistance", 10).getInt();
-	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_POTION_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequirePotionLevel", "").getString(), ":");
-	        PlayerHarvestEventHandler.MINEASSIST_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistAffectPotion", "17:1:15").getString(), ",", ":");
-	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireHunger", 15).getInt();
-	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireToolLevel", "2:10").getString(), ":");
-	        PlayerHarvestEventHandler.MINEASSIST_REQUIRE_ENCHANT_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireEnchantLevel", "").getString(), ":");
+	        BlockBreakEventHandler.MINEASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "mineassistEnable", true).getBoolean(true);
+	        BlockBreakEventHandler.MINEASSIST_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "mineassistMaxDistance", 10).getInt();
+	        BlockBreakEventHandler.MINEASSIST_REQUIRE_POTION_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequirePotionLevel", "").getString(), ":");
+	        BlockBreakEventHandler.MINEASSIST_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistAffectPotion", "17:1:15").getString(), ",", ":");
+	        BlockBreakEventHandler.MINEASSIST_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireHunger", 15).getInt();
+	        BlockBreakEventHandler.MINEASSIST_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireToolLevel", "2:10").getString(), ":");
+	        BlockBreakEventHandler.MINEASSIST_REQUIRE_ENCHANT_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireEnchantLevel", "").getString(), ":");
 
 	        // FlatAssist
-	        PlayerHarvestEventHandler.FLATASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnable", true).getBoolean(true);
-	        PlayerHarvestEventHandler.FLATASSIST_DIRT_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtEnable", true).getBoolean(true);
-	        PlayerHarvestEventHandler.FLATASSIST_DIRT_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequirePotionId", 3).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_DIRT_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtAffectPotion", "").getString(), ",", ":");
-	        PlayerHarvestEventHandler.FLATASSIST_DIRT_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequireHunger", 0).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_DIRT_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequireToolLevel", "2:10").getString(), ":");
-	        PlayerHarvestEventHandler.FLATASSIST_DIRT_REQUIRE_ENCHANT_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequireEnchantId", 0).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_DIRT_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtBelow", false).getBoolean(false);
-	        PlayerHarvestEventHandler.FLATASSIST_DIRT_MAX_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtMaxRadius", 0).getInt();
+	        BlockBreakEventHandler.FLATASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnable", true).getBoolean(true);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtEnable", true).getBoolean(true);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequirePotionId", 3).getInt();
+	        BlockBreakEventHandler.FLATASSIST_DIRT_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtAffectPotion", "").getString(), ",", ":");
+	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequireHunger", 0).getInt();
+	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequireToolLevel", "2:10").getString(), ":");
+	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_ENCHANT_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequireEnchantId", 0).getInt();
+	        BlockBreakEventHandler.FLATASSIST_DIRT_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtBelow", false).getBoolean(false);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_MAX_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtMaxRadius", 0).getInt();
 	        
-	        PlayerHarvestEventHandler.FLATASSIST_STONE_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneEnable", true).getBoolean(true);
-	        PlayerHarvestEventHandler.FLATASSIST_STONE_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequirePotionId", 3).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_STONE_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneAffectPotion", "").getString(), ",", ":");
-	        PlayerHarvestEventHandler.FLATASSIST_STONE_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequireHunger", 0).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_STONE_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequireToolLevel", "2:10").getString(), ":");
-	        PlayerHarvestEventHandler.FLATASSIST_STONE_REQUIRE_ENCHANT_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequireEnchantId", 0).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_STONE_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneBelow", false).getBoolean(false);
-	        PlayerHarvestEventHandler.FLATASSIST_STONE_MAX_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneMaxRadius", 0).getInt();
+	        BlockBreakEventHandler.FLATASSIST_STONE_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneEnable", true).getBoolean(true);
+	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequirePotionId", 3).getInt();
+	        BlockBreakEventHandler.FLATASSIST_STONE_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneAffectPotion", "").getString(), ",", ":");
+	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequireHunger", 0).getInt();
+	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequireToolLevel", "2:10").getString(), ":");
+	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_ENCHANT_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequireEnchantId", 0).getInt();
+	        BlockBreakEventHandler.FLATASSIST_STONE_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneBelow", false).getBoolean(false);
+	        BlockBreakEventHandler.FLATASSIST_STONE_MAX_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneMaxRadius", 0).getInt();
 	      
-	        PlayerHarvestEventHandler.FLATASSIST_WOOD_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodEnable", true).getBoolean(true);
-	        PlayerHarvestEventHandler.FLATASSIST_WOOD_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequirePotionId", 3).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_WOOD_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodAffectPotion", "").getString(), ",", ":");
-	        PlayerHarvestEventHandler.FLATASSIST_WOOD_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequireHunger", 0).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_WOOD_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequireToolLevel", "2:10").getString(), ":");
-	        PlayerHarvestEventHandler.FLATASSIST_WOOD_REQUIRE_ENCHANT_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequireEnchantId", 0).getInt();
-	        PlayerHarvestEventHandler.FLATASSIST_WOOD_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodBelow", false).getBoolean(false);
-	        PlayerHarvestEventHandler.FLATASSIST_WOOD_MAX_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodMaxRadius", 0).getInt();
+	        BlockBreakEventHandler.FLATASSIST_WOOD_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodEnable", true).getBoolean(true);
+	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequirePotionId", 3).getInt();
+	        BlockBreakEventHandler.FLATASSIST_WOOD_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodAffectPotion", "").getString(), ",", ":");
+	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequireHunger", 0).getInt();
+	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequireToolLevel", "2:10").getString(), ":");
+	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_ENCHANT_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequireEnchantId", 0).getInt();
+	        BlockBreakEventHandler.FLATASSIST_WOOD_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodBelow", false).getBoolean(false);
+	        BlockBreakEventHandler.FLATASSIST_WOOD_MAX_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodMaxRadius", 0).getInt();
 	        
 	        // TorchAssist
 	        PlayerClickHandler.TORCHASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "torchassistEnable", true).getBoolean(true);
@@ -170,7 +171,7 @@ public class McAssistant {
         //@Init       // used in 1.5.2
         public void init(FMLInitializationEvent event) {
         	// HarvestAssist
-            MinecraftForge.EVENT_BUS.register(new PlayerHarvestEventHandler());
+            MinecraftForge.EVENT_BUS.register(new BlockBreakEventHandler());
         	
         	// Unifier
         	MinecraftForge.EVENT_BUS.register(new EntityJoinWorldHandler());
