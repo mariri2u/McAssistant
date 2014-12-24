@@ -60,6 +60,7 @@ public class Lib {
 	
 	public static boolean compareCurrentToolLevel(EntityPlayer player, int level){
 		boolean result = false;
+		if(level <= 0) { return true; }
 		try{
 			Item.ToolMaterial material = getMaterial(player.getCurrentEquippedItem().getItem());
 			result = material.getHarvestLevel() >= level;
@@ -69,6 +70,7 @@ public class Lib {
 	
 	public static boolean compareCurrentToolLevel(EntityPlayer player, int min, int max){
 		boolean result = false;
+//		if(min <= 0 && max <= 0) { return true; }
 		try{
 			Item.ToolMaterial material = getMaterial(player.getCurrentEquippedItem().getItem());
 			result = material.getHarvestLevel() >= min && material.getHarvestLevel() <= max;
