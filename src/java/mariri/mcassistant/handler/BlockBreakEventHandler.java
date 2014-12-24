@@ -7,7 +7,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.event.world.BlockEvent;
@@ -94,10 +93,10 @@ public class BlockBreakEventHandler {
 						Lib.compareCurrentToolLevel(player, CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL)){
 					if(CUTDOWN_CHAIN_BREAK_LEAVES){
 						if(block == Blocks.red_mushroom_block){
-							harvester.setIdentifyBlocks(new ItemStack[] { new ItemStack(Blocks.brown_mushroom_block) })
+							harvester.setIdentifyBlocks(new IBlockState[] { Blocks.brown_mushroom_block.getBlockState().getBaseState() })
 								.setFindRange(2);
 						}else if(block == Blocks.brown_mushroom_block){
-							harvester.setIdentifyBlocks(new ItemStack[] { new ItemStack(Blocks.red_mushroom_block) });
+							harvester.setIdentifyBlocks(new IBlockState[] { Blocks.red_mushroom_block.getBlockState().getBaseState() });
 						}else{
 							harvester.setHorizonalMaxOffset(CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE);
 							harvester.setIdentifyBreakTool(false);
@@ -129,7 +128,7 @@ public class BlockBreakEventHandler {
 //					harvester.setCheckMetadata(false);
 //				}else if(block == Blocks.lit_redstone_ore){
 				if(block == Blocks.lit_redstone_ore){
-					harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.redstone_ore) });
+					harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.redstone_ore.getBlockState().getBaseState() });
 					harvester.setCheckMetadata(false);
 				}
 				harvester.harvestChain(MINEASSIST_AFFECT_POTION, false);
@@ -158,13 +157,13 @@ public class BlockBreakEventHandler {
 					affect = FLATASSIST_DIRT_AFFECT_POTION;
 					// 土・草・菌糸は同一視
 					if(block == Blocks.grass){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.dirt), new ItemStack(Blocks.mycelium) });
+						harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.dirt.getBlockState().getBaseState(), Blocks.mycelium.getBlockState().getBaseState() });
 						harvester.setCheckMetadata(false);
 					}else if(block == Blocks.dirt){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.grass), new ItemStack(Blocks.mycelium) });
+						harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.grass.getBlockState().getBaseState(), Blocks.mycelium.getBlockState().getBaseState() });
 						harvester.setCheckMetadata(false);
 					}else if(block == Blocks.mycelium){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.grass), new ItemStack(Blocks.dirt) });
+						harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.grass.getBlockState().getBaseState(), Blocks.dirt.getBlockState().getBaseState() });
 						harvester.setCheckMetadata(false);
 					}
 				}else if(	FLATASSIST_STONE_ENABLE &&
@@ -183,22 +182,22 @@ public class BlockBreakEventHandler {
 					affect = FLATASSIST_STONE_AFFECT_POTION;
 					// 石とシルバーフィッシュは同一視
 					if(block == Blocks.stone){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.monster_egg) });
+						harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.monster_egg.getBlockState().getBaseState() });
 						harvester.setCheckMetadata(false);
 					}
 					// 丸石とシルバーフィッシュは同一視
 					if(block == Blocks.cobblestone){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.monster_egg) });
+						harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.monster_egg.getBlockState().getBaseState() });
 						harvester.setCheckMetadata(false);
 					}
 					// 石レンガとシルバーフィッシュは同一視
 					if(block == Blocks.stonebrick){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.monster_egg) });
+						harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.monster_egg.getBlockState().getBaseState() });
 						harvester.setCheckMetadata(false);
 					}
 					// シルバーフィッシュは石系ブロックと同一視
 					if(block == Blocks.monster_egg){
-						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.stone), new ItemStack(Blocks.cobblestone), new ItemStack(Blocks.stonebrick) });
+						harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.stone.getBlockState().getBaseState(), Blocks.cobblestone.getBlockState().getBaseState(), Blocks.stonebrick.getBlockState().getBaseState() });
 						harvester.setCheckMetadata(false);
 					}
 				}else if(	FLATASSIST_WOOD_ENABLE &&

@@ -6,6 +6,7 @@ import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.monster.EntitySilverfish;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
@@ -18,7 +19,7 @@ public class EdgeHarvester {
 	private int count;
 	private boolean below;
 	private int maxDist;
-	private ItemStack[] identifies;
+	private IBlockState[] identifies;
 	private Comparator idCompare;
 	private boolean dropAfter;
 	private boolean isReplant;
@@ -57,7 +58,7 @@ public class EdgeHarvester {
 		this.findRange = 1;
 	}
 	
-	public EdgeHarvester setIdentifyBlocks(ItemStack[] blocks){
+	public EdgeHarvester setIdentifyBlocks(IBlockState[] blocks){
 		identifies = blocks;
 		return this;
 	}
@@ -241,8 +242,8 @@ public class EdgeHarvester {
 			}
 		}
 		if(!result && identifies != null){
-			for(ItemStack identify : identifies){
-				result |= matchBlock(pos, ((ItemBlock)identify.getItem()).block.getStateFromMeta(identify.getItemDamage()));
+			for(IBlockState identify : identifies){
+				result |= matchBlock(pos, identify);
 			}
 			currentIdentify = result;
 		}
@@ -272,9 +273,16 @@ public class EdgeHarvester {
 		int edmeta = edblk.getMetaFromState(edst);
 		int exp = edblk.getExpDrop(world, edpos, fortune);
 		world.setBlockToAir(edpos);
-		edblk.onBlockDestroyedByPlayer(world, edpos, state);
+		if(edblk == Blocks.monster_egg){
+			EntitySilverfish entitysilverfish = new EntitySilverfish(world);
+			entitysilverfish.setLocationAndAngles((double)edpos.getX() + 0.5D, (double)edpos.getY(), (double)edpos.getZ() + 0.5D, 0.0F, 0.0F);
+			world.spawnEntityInWorld(entitysilverfish);
+			entitysilverfish.spawnExplosionParticle();
+		}else{
+			edblk.onBlockDestroyedByPlayer(world, edpos, state);
+		}
 		// 葉っぱブロック破壊時はシルクタッチを無視する
-		if(isSilkHarvest(edst, edge)){
+		if(isSilkHarvest(edpos, edst)){
 			ItemStack drop = new ItemStack(edblk, 1, edmeta);
 			if(edblk == Blocks.lit_redstone_ore){
 				drop = new ItemStack(Blocks.redstone_ore);
@@ -303,12 +311,12 @@ public class EdgeHarvester {
 		count++;
 	}
 	
-	private boolean isSilkHarvest(IBlockState state, Coord coord){
+	private boolean isSilkHarvest(BlockPos pos, IBlockState state){
 		boolean result = false;
 		boolean silktouch = EnchantmentHelper.getSilkTouchModifier(player);
 		if(horizonalMaxOffset > 0 && targetIdentify){
 			result = false;
-		}else if(silktouch && block.canSilkHarvest(world, coord.getPos(), state, player)){
+		}else if(silktouch && block.canSilkHarvest(world, pos, state, player)){
 			result = true;
 		}
 		return result;
