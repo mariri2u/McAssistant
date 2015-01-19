@@ -19,24 +19,30 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PlayerClickHandler {
 	
+	public static PlayerClickHandler INSTANCE = new PlayerClickHandler();
+	
 	public static boolean TORCHASSIST_ENABLE;
 	
 	public static boolean CROPASSIST_ENABLE = true;
 	public static int CROPASSIST_REQUIRE_TOOL_LEVEL;
 	public static boolean CROPASSIST_AREA_ENABLE;
-	public static boolean CROPASSIST_AREAPLUS_ENABLE;
-	public static int CROPASSIST_AREA_REQUIRE_TOOL_LEVEL;
+	public static int[] CROPASSIST_AREA_REQUIRE_TOOL_LEVEL;
 	public static int[][] CROPASSIST_AREA_AFFECT_POTION;
+	public static boolean CROPASSIST_AREAPLUS_ENABLE;
+	public static int[] CROPASSIST_AREAPLUS_REQUIRE_TOOL_LEVEL;
 	
 	public static boolean LEAVEASSIST_ENABLE;
-	public static boolean LEAVEASSIST_AREAPLUS_ENABLE;
 	public static int[][] LEAVEASSIST_AFFECT_POTION;
+	public static boolean LEAVEASSIST_AREAPLUS_ENABLE;
+	public static int[] LEAVEASSIST_AREAPLUS_REQUIRE_TOOL_LEVEL;
 	
 	public static boolean BEDASSIST_ENABLE;
 	public static boolean BEDASSIST_SET_RESPAWN_ANYTIME;
 	public static String BEDASSIST_SET_RESPAWN_MESSAGE;
 	public static boolean BEDASSIST_NO_SLEEP;
 	public static String BEDASSIST_NO_SLEEP_MESSAGE;
+	
+	private PlayerClickHandler(){}
 
 	@SubscribeEvent
 	public void onPlayerClick(PlayerInteractEvent e){
@@ -53,33 +59,33 @@ public class PlayerClickHandler {
 		World world = e.entityPlayer.worldObj;
 		Block block = world.getBlock(e.x, e.y, e.z);// Block.blocksList[world.getBlockId(e.x, e.y, e.z)];
 		int meta = world.getBlockMetadata(e.x, e.y, e.z);
-		// トーチ補助機能
-		if(TORCHASSIST_ENABLE && (Comparator.PICKAXE.compareCurrentItem(e.entityPlayer) || Comparator.SHOVEL.compareCurrentItem(e.entityPlayer))){
-			ItemStack current = e.entityPlayer.getCurrentEquippedItem();
-			ItemStack torch = new ItemStack(Blocks.torch, 1);
-			// トーチを持っている場合
-			if(e.entityPlayer.inventory.hasItem(torch.getItem())){
-				// トーチを設置できた場合
-				if(		!world.getBlock(e.x, e.y, e.z).onBlockActivated(world, e.x, e.y, e.z, e.entityPlayer, e.face, 0, 0, 0) &&
-						!current.getItem().onItemUse(current, e.entityPlayer, world, e.x, e.y, e.z, e.face, 0, 0, 0) &&
-						torch.getItem().onItemUse(torch, e.entityPlayer, world, e.x, e.y, e.z, e.face, 0, 0, 0)){
-					e.entityPlayer.inventory.consumeInventoryItem(torch.getItem());
-					// トーチの使用をクライアントに通知
-					e.entityPlayer.onUpdate();
-				}
-				// 対象ブロックに対する右クリック処理をキャンセル
-				e.useBlock = Event.Result.DENY;
-				e.useItem = Event.Result.DENY;
-//				e.setCanceled(true);
+		// ベッド補助機能
+		if(BEDASSIST_ENABLE && block == Blocks.bed){
+			// いつでもリスポーンセット
+			if(BEDASSIST_SET_RESPAWN_ANYTIME){
+	        	ChunkCoordinates respawn = new ChunkCoordinates(e.x, e.y, e.z);
+	            if (	world.provider.canRespawnHere() &&
+	            		world.getBiomeGenForCoords(e.x, e.z) != BiomeGenBase.hell &&
+	            		world.provider.isSurfaceWorld() &&
+	            		e.entityPlayer.isEntityAlive() &&
+	            		world.getEntitiesWithinAABB(EntityMob.class, AxisAlignedBB.getBoundingBox(e.x - 8, e.y - 5, e.z - 8, e.x + 8, e.y + 5, e.z + 8)).isEmpty()){
+	                e.entityPlayer.setSpawnChunk(respawn, false, e.entityPlayer.dimension);
+	                e.entityPlayer.addChatComponentMessage(new ChatComponentText(BEDASSIST_SET_RESPAWN_MESSAGE));
+	            }
+			}
+			// 寝るの禁止
+			if(BEDASSIST_NO_SLEEP){
+                e.entityPlayer.addChatComponentMessage(new ChatComponentText(BEDASSIST_NO_SLEEP_MESSAGE));
+                e.setCanceled(true);
 			}
 		}
 		// 葉っぱ破壊補助機能
-		if(		LEAVEASSIST_ENABLE && !world.isAirBlock(e.x, e.y, e.z) &&
+		else if(		LEAVEASSIST_ENABLE && !world.isAirBlock(e.x, e.y, e.z) &&
 				Comparator.LEAVE.compareBlock(block, meta) &&
-				Comparator.AXE.compareCurrentItem(e.entityPlayer)){
+				(Comparator.AXE.compareCurrentItem(e.entityPlayer) ||  Lib.compareCurrentToolClass(e.entityPlayer, "axe"))){
 //			block.breakBlock(world, e.x, e.y, e.z, block, meta);
 			int count = 0;
-			int area = (LEAVEASSIST_AREAPLUS_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, 3)) ? 2 : 1;
+			int area = (LEAVEASSIST_AREAPLUS_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, LEAVEASSIST_AREAPLUS_REQUIRE_TOOL_LEVEL)) ? 2 : 1;
 			for(int x = e.x - area; x <= e.x + area; x++){
 				for(int y = e.y - area; y <= e.y + area; y++){
 					for(int z = e.z - area; z <= e.z + area; z++){
@@ -101,24 +107,26 @@ public class PlayerClickHandler {
 			Lib.affectPotionEffect(e.entityPlayer, LEAVEASSIST_AFFECT_POTION, count);
 			e.setCanceled(true);
 		}
-		// ベッド補助機能
-		if(BEDASSIST_ENABLE && block == Blocks.bed){
-			// いつでもリスポーンセット
-			if(BEDASSIST_SET_RESPAWN_ANYTIME){
-	        	ChunkCoordinates respawn = new ChunkCoordinates(e.x, e.y, e.z);
-	            if (	world.provider.canRespawnHere() &&
-	            		world.getBiomeGenForCoords(e.x, e.z) != BiomeGenBase.hell &&
-	            		world.provider.isSurfaceWorld() &&
-	            		e.entityPlayer.isEntityAlive() &&
-	            		world.getEntitiesWithinAABB(EntityMob.class, AxisAlignedBB.getBoundingBox(e.x - 8, e.y - 5, e.z - 8, e.x + 8, e.y + 5, e.z + 8)).isEmpty()){
-	                e.entityPlayer.setSpawnChunk(respawn, false, e.entityPlayer.dimension);
-	                e.entityPlayer.addChatComponentMessage(new ChatComponentText(BEDASSIST_SET_RESPAWN_MESSAGE));
-	            }
-			}
-			// 寝るの禁止
-			if(BEDASSIST_NO_SLEEP){
-                e.entityPlayer.addChatComponentMessage(new ChatComponentText(BEDASSIST_NO_SLEEP_MESSAGE));
-                e.setCanceled(true);
+		// トーチ補助機能
+		else if(		TORCHASSIST_ENABLE &&
+				((Comparator.PICKAXE.compareCurrentItem(e.entityPlayer) ||  Lib.compareCurrentToolClass(e.entityPlayer, "pickaxe") )||
+				 (Comparator.SHOVEL.compareCurrentItem(e.entityPlayer) ||  Lib.compareCurrentToolClass(e.entityPlayer, "axe")) ) ){
+			ItemStack current = e.entityPlayer.getCurrentEquippedItem();
+			ItemStack torch = new ItemStack(Blocks.torch, 1);
+			// トーチを持っている場合
+			if(e.entityPlayer.inventory.hasItem(torch.getItem())){
+				// トーチを設置できた場合
+				if(		!world.getBlock(e.x, e.y, e.z).onBlockActivated(world, e.x, e.y, e.z, e.entityPlayer, e.face, 0, 0, 0) &&
+						!current.getItem().onItemUse(current, e.entityPlayer, world, e.x, e.y, e.z, e.face, 0, 0, 0) &&
+						torch.getItem().onItemUse(torch, e.entityPlayer, world, e.x, e.y, e.z, e.face, 0, 0, 0)){
+					e.entityPlayer.inventory.consumeInventoryItem(torch.getItem());
+					// トーチの使用をクライアントに通知
+					e.entityPlayer.onUpdate();
+				}
+				// 対象ブロックに対する右クリック処理をキャンセル
+				e.useBlock = Event.Result.DENY;
+				e.useItem = Event.Result.DENY;
+//				e.setCanceled(true);
 			}
 		}
 	}
@@ -135,7 +143,7 @@ public class PlayerClickHandler {
 
 			if(CROPASSIST_AREA_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_AREA_REQUIRE_TOOL_LEVEL)){
 				int count = 0;
-				int area = (CROPASSIST_AREAPLUS_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, 3)) ? 2 : 1;
+				int area = (CROPASSIST_AREAPLUS_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_AREAPLUS_REQUIRE_TOOL_LEVEL)) ? 2 : 1;
 				for(int xi = -1 * area; xi <= area; xi++){
 					for(int zi = -1 * area; zi <= area; zi++){
 						Block b = world.getBlock(e.x + xi, e.y, e.z + zi);
@@ -165,5 +173,9 @@ public class PlayerClickHandler {
 			e.useItem = Event.Result.DENY;
 //			e.setCanceled(true);
 		}
+	}
+	
+	public static boolean isEventEnable(){
+		return BEDASSIST_ENABLE || CROPASSIST_ENABLE || LEAVEASSIST_ENABLE || TORCHASSIST_ENABLE;
 	}
 }

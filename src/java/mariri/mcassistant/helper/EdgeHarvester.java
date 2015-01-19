@@ -27,6 +27,7 @@ public class EdgeHarvester {
 	private Coord coreCoord;
 	private boolean idBreakTool;
 	private int findRange;
+	private boolean breakAnything;
 	
 	protected World world;
 	protected EntityPlayer player;
@@ -51,6 +52,7 @@ public class EdgeHarvester {
 		this.drops = new LinkedList<ItemStack>();
 		this.idBreakTool = true;
 		this.findRange = 1;
+		this.breakAnything = false;
 	}
 	
 	public EdgeHarvester setIdentifyBlocks(ItemStack[] blocks){
@@ -90,6 +92,11 @@ public class EdgeHarvester {
 	
 	public EdgeHarvester setFindRange(int value){
 		this.findRange = value;
+		return this;
+	}
+	
+	public EdgeHarvester setBreakAnything(boolean value){
+		this.breakAnything = value;
 		return this;
 	}
 	
@@ -225,6 +232,12 @@ public class EdgeHarvester {
 	
 	private boolean matchBlock(int x, int y, int z){
 		boolean result = false;
+		
+		if(breakAnything){
+			
+			result |= Lib.isHarvestable(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z), player.inventory.getCurrentItem());
+		}
+		
 		result |= matchBlock(x, y, z, block, metadata);
 		currentIdentify = false;
 		if(!result && idCompare != null){

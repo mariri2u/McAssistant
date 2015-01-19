@@ -1,11 +1,14 @@
 package mariri.mcassistant.helper;
 
 import java.util.List;
+import java.util.Set;
 
+import net.minecraft.block.Block;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
@@ -16,6 +19,15 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 
 public class Lib {
+	
+//	public static void unify(ItemStack drop){
+//		List<ItemStack> oredict = Comparator.UNIFY.findOreDict(drop);
+//		if(oredict != null && oredict.size() > 0){
+//			// ドロップアイテムの書き換え
+//			drop.func_150996_a(oredict.get(0).getItem());
+//			drop.setItemDamage(oredict.get(0).getItemDamage());
+//		}
+//	}
 	
 	public static void affectPotionEffect(EntityPlayer player, int[][] potion, int count){
 		if(count > 1 && potion != null && potion.length > 0){
@@ -58,11 +70,47 @@ public class Lib {
 		return m;
 	}
 	
+	public static boolean isHarvestable(Block block, int metadata, ItemStack itemstack){
+		if(block == Blocks.air) { return false; }
+		boolean result = true;
+		try{
+			result &= getHarvestLevel(itemstack) >= block.getHarvestLevel(metadata);
+			boolean  r = false;
+			Set<String> toolClasses = itemstack.getItem().getToolClasses(itemstack);
+			for(String tc : toolClasses){
+				r |= tc == block.getHarvestTool(metadata);
+			}
+			result &= r;
+//			result |= block.getHarvestTool(metadata) == null;
+			result |= itemstack.getItem().canHarvestBlock(block, itemstack);
+		}catch(NullPointerException e){
+			result = false;
+		}
+		return result;
+	}
+	
+	public static int getHarvestLevel(ItemStack itemstack){
+		Set<String> toolClasses = itemstack.getItem().getToolClasses(itemstack);
+		int level = itemstack.getItem().getHarvestLevel(itemstack, "");
+		for(String tc : toolClasses){
+			int l = itemstack.getItem().getHarvestLevel(itemstack, tc);
+			if(l > level){
+				level = l;
+			}
+		}
+		return level;
+	}
+	
 	public static boolean compareCurrentToolLevel(EntityPlayer player, int level){
 		boolean result = false;
+		if(level <= 0) { return true; }
 		try{
-			Item.ToolMaterial material = getMaterial(player.getCurrentEquippedItem().getItem());
-			result = material.getHarvestLevel() >= level;
+			int lv = getHarvestLevel(player.inventory.getCurrentItem());
+			result = lv >= level;
+			if(lv <= 0){
+				Item.ToolMaterial material = getMaterial(player.getCurrentEquippedItem().getItem());
+				result = material.getHarvestLevel() >= level;
+			}
 		}catch(NullPointerException e){}
 		return result;
 	}
@@ -70,8 +118,12 @@ public class Lib {
 	public static boolean compareCurrentToolLevel(EntityPlayer player, int min, int max){
 		boolean result = false;
 		try{
-			Item.ToolMaterial material = getMaterial(player.getCurrentEquippedItem().getItem());
-			result = material.getHarvestLevel() >= min && material.getHarvestLevel() <= max;
+			int lv = getHarvestLevel(player.inventory.getCurrentItem()); 
+			result = lv >= min && lv <= max;
+			if(lv <= 0){
+				Item.ToolMaterial material = getMaterial(player.getCurrentEquippedItem().getItem());
+				result = material.getHarvestLevel() >= min && material.getHarvestLevel() <= max;
+			}
 		}catch(NullPointerException e){}
 		return result;
 	}
@@ -84,6 +136,14 @@ public class Lib {
 		}else{
 			return false;
 		}
+	}
+	
+	public static boolean compareCurrentToolClass(EntityPlayer player, String name){
+		boolean result = false;
+		for(String c : player.inventory.getCurrentItem().getItem().getToolClasses(player.inventory.getCurrentItem())){
+			result |= c.equals(name);
+		}
+		return result;
 	}
 	
 	public static int getPotionAffectedLevel(EntityLivingBase entity, int id){

@@ -9,6 +9,7 @@ import mariri.mcassistant.helper.CropReplanter;
 import mariri.mcassistant.helper.Lib;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -20,166 +21,331 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class McAssistant {
 
         public static final String MODID = "McAssistant";
-        public static final String VERSION = "1.7.2-1.3a";
-        private static final String CATEGORY_ITEM_REGISTER = "ItemRegister";
+        public static final String VERSION = "1.7.2-1.4";
         
-        @EventHandler // used in 1.6.2
-        //@PreInit    // used in 1.5.2
+        private static final String CATEGORY_BREEDASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "breedassist";
+        private static final String CATEGORY_CROPASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "cropassist";
+        private static final String CATEGORY_CROPASSIST_AREA = CATEGORY_CROPASSIST + Configuration.CATEGORY_SPLITTER + "area";
+        private static final String CATEGORY_CROPASSIST_AREAPLUS = CATEGORY_CROPASSIST + Configuration.CATEGORY_SPLITTER + "areaplus";
+        private static final String CATEGORY_CUTDOWN = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "cutdown";
+        private static final String CATEGORY_CUTDOWN_CHAIN = CATEGORY_CUTDOWN + Configuration.CATEGORY_SPLITTER + "chain";
+        private static final String CATEGORY_FLATASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "flatassist";
+        private static final String CATEGORY_FLATASSIST_HARVESTABLE = CATEGORY_FLATASSIST + Configuration.CATEGORY_SPLITTER + "harvestable";
+        private static final String CATEGORY_FLATASSIST_DIRT = CATEGORY_FLATASSIST + Configuration.CATEGORY_SPLITTER + "dirt";
+        private static final String CATEGORY_FLATASSIST_STONE = CATEGORY_FLATASSIST + Configuration.CATEGORY_SPLITTER + "stone";
+        private static final String CATEGORY_FLATASSIST_WOOD = CATEGORY_FLATASSIST + Configuration.CATEGORY_SPLITTER + "wood";
+        private static final String CATEGORY_LEAVEASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "leaveassist";
+        private static final String CATEGORY_LEAVEASSIST_AREAPLUS = CATEGORY_LEAVEASSIST + Configuration.CATEGORY_SPLITTER + "areaplus";
+        private static final String CATEGORY_MINEASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "mineassist";
+        private static final String CATEGORY_BEDASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "bedassist";
+
+        private static final String CATEGORY_ITEM_REGISTER = "ItemRegister";
+        private static final String CATEGORY_AXE = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "axe";
+        private static final String CATEGORY_CROP = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "crop";
+        private static final String CATEGORY_DIRT = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "dirt";
+        private static final String CATEGORY_HOE = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "hoe";
+        private static final String CATEGORY_LOG = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "log";
+        private static final String CATEGORY_ORE = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "ore";
+        private static final String CATEGORY_PICKAXE = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "pickaxe";
+        private static final String CATEGORY_SEED = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "seed";
+        private static final String CATEGORY_SHOVEL = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "shovel";
+        private static final String CATEGORY_STONE = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "stone";
+        private static final String CATEGORY_UNIFY = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "unify";
+        private static final String CATEGORY_WOOD = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "wood";
+        private static final String CATEGORY_SAPLING = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "sapling";
+        private static final String CATEGORY_LEAVE = CATEGORY_ITEM_REGISTER + Configuration.CATEGORY_SPLITTER + "leave";
+
+//        private static final String COMMENT_BOOLEAN = "true / false";
+//        private static final String COMMENT_0_INTEGER = "0:disable, 1 or over";
+//        private static final String COMMENT_INTEGER = "1 or over";
+        private static final String COMMENT_ID_LV = "ID:MinLv";
+        private static final String COMMENT_ID_LV_TIME = "ID:Lv:Time (,PotionID:Lv:Time,...)";
+        private static final String COMMENT_MIN_MAX = "0:disable, MinLv(:MaxLv)";
+        private static final String COMMENT_HUNGER = "between 0 to 20";
+        
+        @EventHandler
         public void preInit(FMLPreInitializationEvent event) {
             Configuration config = new Configuration(event.getSuggestedConfigurationFile());
 	        config.load();
 	        
-	        // EdgeHarvesterSetting
-	        BlockBreakEventHandler.CUTDOWN_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cutdownEnable", true).getBoolean(true);
-	        BlockBreakEventHandler.CUTDOWN_FROM_TOP_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cutdownFromTopEnable", true).getBoolean(true);
-	        BlockBreakEventHandler.CUTDOWN_CHAIN = config.get(Configuration.CATEGORY_GENERAL, "cutdownChain", true).getBoolean(true);
-	        BlockBreakEventHandler.CUTDOWN_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "cutdownMaxDistance", 30).getInt();
-	        BlockBreakEventHandler.CUTDOWN_BELOW = config.get(Configuration.CATEGORY_GENERAL, "cutdownBelow", false).getBoolean(false);
-	        BlockBreakEventHandler.CUTDOWN_ONLY_ROOT = config.get(Configuration.CATEGORY_GENERAL, "cutdownOnlyRoot", true).getBoolean(true);
-//	        PlayerHarvestEventHandler.CUTDOWN_REPLANT = config.get(Configuration.CATEGORY_GENERAL, "cutdownReplant", true).getBoolean(true);
-	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequirePotionLevel", "").getString(), ":");
-	        BlockBreakEventHandler.CUTDOWN_CHAIN_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainAffectPotion", "").getString(), ",", ":");
-	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireHunger", 0).getInt();
-	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireToolLevel", 2).getInt();
-	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_ENCHANT_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cutdownChainRequireEnchantLevel", "32:1").getString(), ":");
-	        BlockBreakEventHandler.CUTDOWN_CHAIN_BREAK_LEAVES = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainBreakLeaves", true).getBoolean(true);
-	        BlockBreakEventHandler.CUTDOWN_CHAIN_REPLANT = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainReplant", true).getBoolean(true);
-	        BlockBreakEventHandler.CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainMaxHorizonalDistance", 2).getInt();
-
-	        // CropHarvesterSetting
-	        PlayerClickHandler.CROPASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cropassistEnable", true).getBoolean(true);
-	        PlayerClickHandler.CROPASSIST_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cropassistRequireToolLevel", 0).getInt();
-	        PlayerClickHandler.CROPASSIST_AREA_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cropassistAreaEnable", true).getBoolean(true);
-	        PlayerClickHandler.CROPASSIST_AREA_REQUIRE_TOOL_LEVEL = config.get(Configuration.CATEGORY_GENERAL, "cropassistAreaRequireToolLevel", 2).getInt();
-	        PlayerClickHandler.CROPASSIST_AREAPLUS_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "cropassistAreaPlusEnable", true).getBoolean(true);
-	        PlayerClickHandler.CROPASSIST_AREA_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "cropassistAreaAffectPotion", "").getString(), ",", ":");
-	        CropReplanter.CROPASSIST_SUPLY = config.get(Configuration.CATEGORY_GENERAL, "cropassistSuplyFromInventory", true).getBoolean(true);
-	        CropReplanter.CROPASSIST_AUTOCRAFT = config.get(Configuration.CATEGORY_GENERAL, "cropassistAutoCraft", true).getBoolean(true);
+	        Property prop;
+	        
+	        // CutdownAssist
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "cutdownEnable", true);
+	        BlockBreakEventHandler.CUTDOWN_ENABLE = prop.getBoolean(true);
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "cutdownBreakFromTopEnable", true);
+	        BlockBreakEventHandler.CUTDOWN_FROM_TOP_ENABLE = prop.getBoolean(true);
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "cutdownChainEnable", true);
+	        BlockBreakEventHandler.CUTDOWN_CHAIN = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_CUTDOWN, "maxRadius", 30);
+	        BlockBreakEventHandler.CUTDOWN_MAX_DISTANCE = prop.getInt();
+	        prop = config.get(CATEGORY_CUTDOWN, "breakBelow", false);
+	        BlockBreakEventHandler.CUTDOWN_BELOW =  prop.getBoolean(false);
+	        prop = config.get(CATEGORY_CUTDOWN, "onlyRoot", true);
+	        BlockBreakEventHandler.CUTDOWN_ONLY_ROOT = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_CUTDOWN_CHAIN, "requirePotionLevel", "");
+	        prop.comment = COMMENT_ID_LV;
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_CUTDOWN_CHAIN, "affectPotion", "");
+	        prop.comment = COMMENT_ID_LV_TIME;
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_AFFECT_POTION = Lib.stringToInt(prop.getString(), ",", ":");
+	        prop = config.get(CATEGORY_CUTDOWN_CHAIN, "requireHunger", 0);
+	        prop.comment = COMMENT_HUNGER;
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_HUNGER = prop.getInt();
+	        prop = config.get(CATEGORY_CUTDOWN_CHAIN, "requireToolLevel", "2");
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_TOOL_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_CUTDOWN_CHAIN, "requireEnchantLevel", "32:1");
+	        prop.comment = COMMENT_ID_LV;
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REQUIRE_ENCHANT_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_CUTDOWN_CHAIN, "breakLeaves", true);
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_BREAK_LEAVES = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_CUTDOWN_CHAIN, "autoReplant", true);
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_REPLANT = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_CUTDOWN_CHAIN, "maxHorizonalRadius", 2);
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE = prop.getInt();
 
 	        // MineAssist
-	        BlockBreakEventHandler.MINEASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "mineassistEnable", true).getBoolean(true);
-	        BlockBreakEventHandler.MINEASSIST_MAX_DISTANCE = config.get(Configuration.CATEGORY_GENERAL, "mineassistMaxDistance", 10).getInt();
-	        BlockBreakEventHandler.MINEASSIST_REQUIRE_POTION_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequirePotionLevel", "").getString(), ":");
-	        BlockBreakEventHandler.MINEASSIST_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistAffectPotion", "17:1:15").getString(), ",", ":");
-	        BlockBreakEventHandler.MINEASSIST_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireHunger", 15).getInt();
-	        BlockBreakEventHandler.MINEASSIST_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireToolLevel", "2:10").getString(), ":");
-	        BlockBreakEventHandler.MINEASSIST_REQUIRE_ENCHANT_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "mineassistRequireEnchantLevel", "").getString(), ":");
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "mineassistEnable", true);
+	        BlockBreakEventHandler.MINEASSIST_ENABLE = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_MINEASSIST, "maxRadius", 10);
+	        BlockBreakEventHandler.MINEASSIST_MAX_DISTANCE = prop.getInt();
+	        prop = config.get(CATEGORY_MINEASSIST, "requirePotionLevel", "");
+	        prop.comment = COMMENT_ID_LV;
+	        BlockBreakEventHandler.MINEASSIST_REQUIRE_POTION_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_MINEASSIST, "affectPotion", "17:1:15");
+	        prop.comment = COMMENT_ID_LV_TIME;
+	        BlockBreakEventHandler.MINEASSIST_AFFECT_POTION = Lib.stringToInt(prop.getString(), ",", ":");
+	        prop = config.get(CATEGORY_MINEASSIST, "requireHunger", 15);
+	        prop.comment = COMMENT_HUNGER;
+	        BlockBreakEventHandler.MINEASSIST_REQUIRE_HUNGER = prop.getInt();
+	        prop = config.get(CATEGORY_MINEASSIST, "requireToolLevel", "2");
+	        prop.comment = COMMENT_MIN_MAX;
+	        BlockBreakEventHandler.MINEASSIST_REQUIRE_TOOL_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_MINEASSIST, "requireEnchantLevel", "");
+	        prop.comment = COMMENT_ID_LV;
+	        BlockBreakEventHandler.MINEASSIST_REQUIRE_ENCHANT_LEVEL = Lib.stringToInt(prop.getString(), ":");
 
 	        // FlatAssist
-	        BlockBreakEventHandler.FLATASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnable", true).getBoolean(true);
-	        BlockBreakEventHandler.FLATASSIST_DIRT_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtEnable", true).getBoolean(true);
-	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequirePotionId", 3).getInt();
-	        BlockBreakEventHandler.FLATASSIST_DIRT_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtAffectPotion", "").getString(), ",", ":");
-	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequireHunger", 0).getInt();
-	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequireToolLevel", "2:10").getString(), ":");
-	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_ENCHANT_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtRequireEnchantId", 0).getInt();
-	        BlockBreakEventHandler.FLATASSIST_DIRT_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtBelow", false).getBoolean(false);
-	        BlockBreakEventHandler.FLATASSIST_DIRT_MAX_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "flatassistDirtMaxRadius", 0).getInt();
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "flatassistEnable", true);
+	        BlockBreakEventHandler.FLATASSIST_ENABLE = prop.getBoolean(true);
 	        
-	        BlockBreakEventHandler.FLATASSIST_STONE_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneEnable", true).getBoolean(true);
-	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequirePotionId", 3).getInt();
-	        BlockBreakEventHandler.FLATASSIST_STONE_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneAffectPotion", "").getString(), ",", ":");
-	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequireHunger", 0).getInt();
-	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequireToolLevel", "2:10").getString(), ":");
-	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_ENCHANT_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneRequireEnchantId", 0).getInt();
-	        BlockBreakEventHandler.FLATASSIST_STONE_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneBelow", false).getBoolean(false);
-	        BlockBreakEventHandler.FLATASSIST_STONE_MAX_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "flatassistStoneMaxRadius", 0).getInt();
+	        prop = config.get(CATEGORY_FLATASSIST, "flatassistHarvestableEnable", true);
+	        BlockBreakEventHandler.FLATASSIST_HARVESTABLE_ENABLE = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_FLATASSIST_HARVESTABLE, "requirePotionId", 3);
+	        BlockBreakEventHandler.FLATASSIST_HARVESTABLE_REQUIRE_POTION_ID = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_HARVESTABLE, "affectPotion", "");
+	        prop.comment = COMMENT_ID_LV_TIME;
+	        BlockBreakEventHandler.FLATASSIST_HARVESTABLE_AFFECT_POTION = Lib.stringToInt(prop.getString(), ",", ":");
+	        prop = config.get(CATEGORY_FLATASSIST_HARVESTABLE, "requireHunger", 0);
+	        BlockBreakEventHandler.FLATASSIST_HARVESTABLE_REQUIRE_HUNGER = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_HARVESTABLE, "requireToolLevel", "2");
+	        prop.comment = COMMENT_MIN_MAX;
+	        BlockBreakEventHandler.FLATASSIST_HARVESTABLE_REQUIRE_TOOL_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_FLATASSIST_HARVESTABLE, "requireEnchantId", 0);
+	        BlockBreakEventHandler.FLATASSIST_HARVESTABLE_REQUIRE_ENCHANT_ID = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_HARVESTABLE, "breakBelow", false);
+	        BlockBreakEventHandler.FLATASSIST_HARVESTABLE_BELOW = prop.getBoolean(false);
+	        prop = config.get(CATEGORY_FLATASSIST_HARVESTABLE, "maxRadius", 0);
+	        BlockBreakEventHandler.FLATASSIST_HARVESTABLE_MAX_RADIUS = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_HARVESTABLE, "breakAnything", false);
+	        BlockBreakEventHandler.FLATASSIST_HARVESTABLE_BREAK_ANYTHING = prop.getBoolean(false);
+
+	        prop = config.get(CATEGORY_FLATASSIST, "flatassistDirtEnable", false);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_ENABLE = prop.getBoolean(false);
+	        prop = config.get(CATEGORY_FLATASSIST_DIRT, "requirePotionId", 3);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_POTION_ID = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_DIRT, "affectPotion", "");
+	        prop.comment = COMMENT_ID_LV_TIME;
+	        BlockBreakEventHandler.FLATASSIST_DIRT_AFFECT_POTION = Lib.stringToInt(prop.getString(), ",", ":");
+	        prop = config.get(CATEGORY_FLATASSIST_DIRT, "requireHunger", 0);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_HUNGER = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_DIRT, "requireToolLevel", "2");
+	        prop.comment = COMMENT_MIN_MAX;
+	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_TOOL_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_FLATASSIST_DIRT, "requireEnchantId", 0);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_REQUIRE_ENCHANT_ID = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_DIRT, "breakBelow", false);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_BELOW = prop.getBoolean(false);
+	        prop = config.get(CATEGORY_FLATASSIST_DIRT, "maxRadius", 0);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_MAX_RADIUS = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_DIRT, "breakAnything", false);
+	        BlockBreakEventHandler.FLATASSIST_DIRT_BREAK_ANYTHING = prop.getBoolean(false);
+	        
+	        prop = config.get(CATEGORY_FLATASSIST, "flatassistStoneEnable", false);
+	        BlockBreakEventHandler.FLATASSIST_STONE_ENABLE = prop.getBoolean(false);
+	        prop = config.get(CATEGORY_FLATASSIST_STONE, "requirePotionId", 3);
+	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_POTION_ID = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_STONE, "affectPotion", "");
+	        prop.comment = COMMENT_ID_LV_TIME;
+	        BlockBreakEventHandler.FLATASSIST_STONE_AFFECT_POTION = Lib.stringToInt(prop.getString(), ",", ":");
+	        prop = config.get(CATEGORY_FLATASSIST_STONE, "requireHunger", 0);
+	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_HUNGER = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_STONE, "requireToolLevel", "2");
+	        prop.comment = COMMENT_MIN_MAX;
+	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_TOOL_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_FLATASSIST_STONE, "requireEnchantId", 0);
+	        BlockBreakEventHandler.FLATASSIST_STONE_REQUIRE_ENCHANT_ID = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_STONE, "breakBelow", false);
+	        BlockBreakEventHandler.FLATASSIST_STONE_BELOW = prop.getBoolean(false);
+	        prop = config.get(CATEGORY_FLATASSIST_STONE, "maxRadius", 0);
+	        BlockBreakEventHandler.FLATASSIST_STONE_MAX_RADIUS = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_STONE, "breakAnything", false);
+	        BlockBreakEventHandler.FLATASSIST_STONE_BREAK_ANYTHING = prop.getBoolean(false);
 	      
-	        BlockBreakEventHandler.FLATASSIST_WOOD_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodEnable", true).getBoolean(true);
-	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_POTION_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequirePotionId", 3).getInt();
-	        BlockBreakEventHandler.FLATASSIST_WOOD_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodAffectPotion", "").getString(), ",", ":");
-	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_HUNGER = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequireHunger", 0).getInt();
-	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_TOOL_LEVEL = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequireToolLevel", "2:10").getString(), ":");
-	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_ENCHANT_ID = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodRequireEnchantId", 0).getInt();
-	        BlockBreakEventHandler.FLATASSIST_WOOD_BELOW = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodBelow", false).getBoolean(false);
-	        BlockBreakEventHandler.FLATASSIST_WOOD_MAX_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "flatassistWoodMaxRadius", 0).getInt();
+	        prop = config.get(CATEGORY_FLATASSIST, "flatassistWoodEnable", false);
+	        BlockBreakEventHandler.FLATASSIST_WOOD_ENABLE = prop.getBoolean(false);
+	        prop = config.get(CATEGORY_FLATASSIST_WOOD, "requirePotionId", 3);
+	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_POTION_ID = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_WOOD, "affectPotion", "");
+	        prop.comment = COMMENT_ID_LV_TIME;
+	        BlockBreakEventHandler.FLATASSIST_WOOD_AFFECT_POTION = Lib.stringToInt(prop.getString(), ",", ":");
+	        prop = config.get(CATEGORY_FLATASSIST_WOOD, "requireHunger", 0);
+	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_HUNGER = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_WOOD, "requireToolLevel", "2:10");
+	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_TOOL_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_FLATASSIST_WOOD, "requireEnchantId", 0);
+	        BlockBreakEventHandler.FLATASSIST_WOOD_REQUIRE_ENCHANT_ID = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_WOOD, "breakBelow", false);
+	        BlockBreakEventHandler.FLATASSIST_WOOD_BELOW = prop.getBoolean(false);
+	        prop = config.get(CATEGORY_FLATASSIST_WOOD, "maxRadius", 0);
+	        BlockBreakEventHandler.FLATASSIST_WOOD_MAX_RADIUS = prop.getInt();
+	        prop = config.get(CATEGORY_FLATASSIST_WOOD, "breakAnything", false);
+	        BlockBreakEventHandler.FLATASSIST_WOOD_BREAK_ANYTHING = prop.getBoolean(false);
+
+	        // CropAssist
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "cropassistEnable", true);
+	        PlayerClickHandler.CROPASSIST_ENABLE = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_CROPASSIST, "requireToolLevel", 0);
+	        PlayerClickHandler.CROPASSIST_REQUIRE_TOOL_LEVEL = prop.getInt();
+	        prop = config.get(CATEGORY_CROPASSIST_AREA, "areaEnable", true);
+	        PlayerClickHandler.CROPASSIST_AREA_ENABLE = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_CROPASSIST_AREA, "requireToolLevel", "2");
+	        prop.comment = COMMENT_MIN_MAX;
+	        PlayerClickHandler.CROPASSIST_AREA_REQUIRE_TOOL_LEVEL = Lib.stringToInt(prop.getString(), ":");
+	        prop = config.get(CATEGORY_CROPASSIST, "affectPotion", "");
+	        prop.comment = COMMENT_ID_LV_TIME;
+	        PlayerClickHandler.CROPASSIST_AREA_AFFECT_POTION = Lib.stringToInt(prop.getString(), ",", ":");
+	        prop = config.get(CATEGORY_CROPASSIST, "suplyFromInventory", true);
+	        CropReplanter.CROPASSIST_SUPLY = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_CROPASSIST, "autoCraft", true);
+	        CropReplanter.CROPASSIST_AUTOCRAFT = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_CROPASSIST_AREAPLUS, "areaPlusEnable", true);
+	        PlayerClickHandler.CROPASSIST_AREAPLUS_ENABLE =prop.getBoolean(true);
+	        prop = config.get(CATEGORY_CROPASSIST_AREAPLUS, "requireToolLevel", "3");
+	        prop.comment = COMMENT_MIN_MAX;
+	        PlayerClickHandler.CROPASSIST_AREAPLUS_REQUIRE_TOOL_LEVEL = Lib.stringToInt(prop.getString(), ":");
 	        
 	        // TorchAssist
-	        PlayerClickHandler.TORCHASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "torchassistEnable", true).getBoolean(true);
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "torchassistEnable", true);
+	        PlayerClickHandler.TORCHASSIST_ENABLE = prop.getBoolean(true);
 	        
 	        // LeaveAssist
-	        PlayerClickHandler.LEAVEASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "leaveassistEnable", true).getBoolean(true);
-	        PlayerClickHandler.LEAVEASSIST_AREAPLUS_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "leaveassistAreaPlusEnable", true).getBoolean(true);
-	        PlayerClickHandler.LEAVEASSIST_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "leaveassistAffectPotion", "").getString(), ",", ":");
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "leaveassistEnable", true);
+	        PlayerClickHandler.LEAVEASSIST_ENABLE = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_LEAVEASSIST, "affectPotion", "");
+	        prop.comment = COMMENT_ID_LV_TIME;
+	        PlayerClickHandler.LEAVEASSIST_AFFECT_POTION = Lib.stringToInt(prop.getString(), ",", ":");
+	        prop = config.get(CATEGORY_LEAVEASSIST_AREAPLUS, "areaPlusEnable", true);
+	        PlayerClickHandler.LEAVEASSIST_AREAPLUS_ENABLE = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_LEAVEASSIST_AREAPLUS, "requireToolLevel", "3");
+	        prop.comment = COMMENT_MIN_MAX;
+	        PlayerClickHandler.LEAVEASSIST_AREAPLUS_REQUIRE_TOOL_LEVEL = Lib.stringToInt(prop.getString(), ":");
+
 
 	        // BedAssist
-	        PlayerClickHandler.BEDASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "bedassistEnable", true).getBoolean(true);
-	        PlayerClickHandler.BEDASSIST_SET_RESPAWN_ANYTIME = config.get(Configuration.CATEGORY_GENERAL, "bedassistSetRespawnAnytime", true).getBoolean(true);
-	        PlayerClickHandler.BEDASSIST_SET_RESPAWN_MESSAGE = config.get(Configuration.CATEGORY_GENERAL, "bedassistSetRespawnMessage", "Set Respawn!!").getString();
-	        PlayerClickHandler.BEDASSIST_NO_SLEEP = config.get(Configuration.CATEGORY_GENERAL, "bedassistNoSleep", false).getBoolean(false);
-	        PlayerClickHandler.BEDASSIST_NO_SLEEP_MESSAGE = config.get(Configuration.CATEGORY_GENERAL, "bedassistNoSleepMessage", "You can't sleep!!").getString();
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "bedassistEnable", true);
+	        PlayerClickHandler.BEDASSIST_ENABLE = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_BEDASSIST, "setRespawnAnytimeEnable", true);
+	        PlayerClickHandler.BEDASSIST_SET_RESPAWN_ANYTIME = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_BEDASSIST, "setRespawnAnytimeMessage", "Set Respawn!!");
+	        PlayerClickHandler.BEDASSIST_SET_RESPAWN_MESSAGE = prop.getString();
+	        prop = config.get(CATEGORY_BEDASSIST, "noSleepEnable", false);
+	        PlayerClickHandler.BEDASSIST_NO_SLEEP = prop.getBoolean(false);
+	        prop = config.get(CATEGORY_BEDASSIST, "noSleepMessage", "You can't sleep!!");
+	        PlayerClickHandler.BEDASSIST_NO_SLEEP_MESSAGE = prop.getString();
      
 	        // BreedAssist
-	        EntityInteractHandler.BREEDASSIST_ENABLE = config.get(Configuration.CATEGORY_GENERAL, "breedassistEnable", true).getBoolean(true);
-	        EntityInteractHandler.BREEDASSIST_RADIUS = config.get(Configuration.CATEGORY_GENERAL, "breedassistRadius", 2).getInt();
-	        EntityInteractHandler.BREEDASSIST_AFFECT_POTION = Lib.stringToInt(config.get(Configuration.CATEGORY_GENERAL, "breedassistAffectPotion", "").getString(), ",", ":");
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "breedassistEnable", true);
+	        EntityInteractHandler.BREEDASSIST_ENABLE = prop.getBoolean(true);
+	        prop = config.get(CATEGORY_BREEDASSIST, "maxRadius", 2);
+	        EntityInteractHandler.BREEDASSIST_RADIUS = prop.getInt();
+	        prop = config.get(CATEGORY_BREEDASSIST, "affectPotion", "");
+	        prop.comment = COMMENT_ID_LV_TIME;
+	        EntityInteractHandler.BREEDASSIST_AFFECT_POTION = Lib.stringToInt(prop.getString(), ",", ":");
    
 	        // Converter
-	        EntityJoinWorldHandler.UNIFY_ENEBLE = config.get(Configuration.CATEGORY_GENERAL, "autounifyEnable", true).getBoolean(true);
+	        prop = config.get(Configuration.CATEGORY_GENERAL, "autounifyEnable", true);
+	        EntityJoinWorldHandler.UNIFY_ENEBLE = prop.getBoolean(true);
 	        
 	        // RegisterItem
-	        Comparator.UNIFY.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "unifyOreDictionary", "ore.*,").getString(), ","));
-	        Comparator.ORE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreNames", "").getString(), ","));
-	        Comparator.ORE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreClasses", ".*BlockOre.*, .*BlockRedstoneOre.*, .*BlockGlowstone.*, .*BlockObsidian.*").getString(), ","));
-	        Comparator.ORE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "oreOreDictionary", "ore.*").getString(), ","));
-	        Comparator.SHOVEL.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelNames", "").getString(), ","));
-	        Comparator.SHOVEL.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelClasses", ".*ItemSpade.*").getString(), ","));
-	        Comparator.SHOVEL.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "shovelOreDictionary", "").getString(), ","));
-	        Comparator.PICKAXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "pickaxeNames", "").getString(), ","));
-	        Comparator.PICKAXE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "pickaxeClasses", ".*ItemPickaxe.*").getString(), ","));
-	        Comparator.PICKAXE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "pickaxeOreDictionary", "").getString(), ","));
-	        Comparator.HOE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeNames", "").getString(), ","));
-	        Comparator.HOE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeClasses", ".*ItemHoe.*").getString(), ","));
-	        Comparator.HOE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "hoeOreDictionary", "").getString(), ","));
-	        Comparator.SEED.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedNames", ".*Seed.*").getString(), ","));
-	        Comparator.SEED.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedClasses", ".*IPlantable.*, .*Seed.*").getString(), ","));
-	        Comparator.SEED.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "seedOreDictionary", "").getString(), ","));
-	        Comparator.CROP.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropNames", ".*Crop.*").getString(), ","));
-	        Comparator.CROP.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropClasses", ".*Crop.*, .*Bush.*").getString(), ","));
-	        Comparator.CROP.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "cropOreDictionary", "").getString(), ","));
-	        Comparator.AXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeNames", "").getString(), ","));
-	        Comparator.AXE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeClasses", ".*ItemAxe.*").getString(), ","));
-	        Comparator.AXE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "axeOreDictionarys", "").getString(), ","));
-	        Comparator.LOG.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logNames", ".*Mushroom.*").getString(), ","));
-	        Comparator.LOG.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logClasses", ".*Log.*").getString(), ","));
-	        Comparator.LOG.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "logOreDictionary", "logWood").getString(), ","));
-	        Comparator.DIRT.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtNames", ".*Grass.*, .*Dirt.*").getString(), ","));
-	        Comparator.DIRT.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtClasses", ".*Grass.*, .*Dirt.*, .*Mycelium.*, .*Sand, .*Clay.*, .*Gravel.*").getString(), ","));
-	        Comparator.DIRT.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "dirtOreDictionary", "").getString(), ","));
-	        Comparator.STONE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneNames", ".*Stone.*, .*Brick.*, .*Clay.*, .*Fence.*, .*Wall.*, .*Iron.*").getString(), ","));
-	        Comparator.STONE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneClasses", ".*Stone.*, .*Netherrack.*, .*SilverFish.*").getString(), ","));
-	        Comparator.STONE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "stoneOreDictionary", "").getString(), ","));
-	        Comparator.WOOD.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodNames", ".*Wood.*, .*Plank.*").getString(), ","));
-	        Comparator.WOOD.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodClasses", ".*Wood.*, .*Plank.*, .*BlockFence.*").getString(), ","));
-	        Comparator.WOOD.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "woodOreDictionary", "plankWood").getString(), ","));
-	        Comparator.SAPLING.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingNames", ".*Sapling.*").getString(), ","));
-	        Comparator.SAPLING.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingClasses", ".*Sapling.*").getString(), ","));
-	        Comparator.SAPLING.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "saplingOreDictionary", "").getString(), ","));
-	        Comparator.LEAVE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "leaveNames", ".*Leave.*").getString(), ","));
-	        Comparator.LEAVE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "leaveClasses", ".*Leave.*").getString(), ","));
-	        Comparator.LEAVE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ITEM_REGISTER, "leaveOreDictionary", "").getString(), ","));
+	        Comparator.UNIFY.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_UNIFY, "oreDictionary", "ore.*,").getString(), ","));
+	        Comparator.AXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_AXE, "names", ".*Axe, .*Tool.*").getString(), ","));
+	        Comparator.AXE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_AXE, "classes", ".*ItemAxe.*").getString(), ","));
+	        Comparator.AXE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_AXE, "oreDictionary", "").getString(), ","));
+	        Comparator.PICKAXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_PICKAXE, "names", ".*Pickaxe, .*Tool.*").getString(), ","));
+	        Comparator.PICKAXE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_PICKAXE, "classes", ".*ItemPickaxe.*").getString(), ","));
+	        Comparator.PICKAXE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_PICKAXE, "oreDictionary", "").getString(), ","));
+	        Comparator.SHOVEL.registerName(Lib.splitAndTrim(config.get(CATEGORY_SHOVEL, "names", ".*Tool.*").getString(), ","));
+	        Comparator.SHOVEL.registerClass(Lib.splitAndTrim(config.get(CATEGORY_SHOVEL, "classes", ".*ItemSpade.*").getString(), ","));
+	        Comparator.SHOVEL.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_SHOVEL, "oreDictionary", "").getString(), ","));
+	        Comparator.HOE.registerName(Lib.splitAndTrim(config.get(CATEGORY_HOE, "names", ".*Hoe, .*Tool.*").getString(), ","));
+	        Comparator.HOE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_HOE, "classes", ".*ItemHoe.*").getString(), ","));
+	        Comparator.HOE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_HOE, "oreDictionary", "").getString(), ","));
+	        Comparator.LOG.registerName(Lib.splitAndTrim(config.get(CATEGORY_LOG, "names", ".*Mushroom.*, .*log.*").getString(), ","));
+	        Comparator.LOG.registerClass(Lib.splitAndTrim(config.get(CATEGORY_LOG, "classes", ".*Log.*").getString(), ","));
+	        Comparator.LOG.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_LOG, "oreDictionary", "logWood").getString(), ","));
+	        Comparator.SAPLING.registerName(Lib.splitAndTrim(config.get(CATEGORY_SAPLING, "names", ".*Sapling.*").getString(), ","));
+	        Comparator.SAPLING.registerClass(Lib.splitAndTrim(config.get(CATEGORY_SAPLING, "classes", ".*Sapling.*").getString(), ","));
+	        Comparator.SAPLING.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_SAPLING, "oreDictionary", "").getString(), ","));
+	        Comparator.ORE.registerName(Lib.splitAndTrim(config.get(CATEGORY_ORE, "names", "").getString(), ","));
+	        Comparator.ORE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_ORE, "classes", ".*BlockOre.*, .*BlockRedstoneOre.*, .*BlockGlowstone.*, .*BlockObsidian.*").getString(), ","));
+	        Comparator.ORE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_ORE, "oreDictionary", "ore.*").getString(), ","));
+	        Comparator.DIRT.registerName(Lib.splitAndTrim(config.get(CATEGORY_DIRT, "names", ".*Grass.*, .*Dirt.*").getString(), ","));
+	        Comparator.DIRT.registerClass(Lib.splitAndTrim(config.get(CATEGORY_DIRT, "classes", ".*Grass.*, .*Dirt.*, .*Mycelium.*, .*Sand, .*Clay.*, .*Gravel.*").getString(), ","));
+	        Comparator.DIRT.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_DIRT, "oreDictionary", "").getString(), ","));
+	        Comparator.STONE.registerName(Lib.splitAndTrim(config.get(CATEGORY_STONE, "names", ".*Stone.*, .*Brick.*, .*Clay.*, .*Fence.*, .*Wall.*, .*Iron.*").getString(), ","));
+	        Comparator.STONE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_STONE, "classes", ".*Stone.*, .*Netherrack.*, .*SilverFish.*").getString(), ","));
+	        Comparator.STONE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_STONE, "oreDictionary", "").getString(), ","));
+	        Comparator.WOOD.registerName(Lib.splitAndTrim(config.get(CATEGORY_WOOD, "names", ".*Wood.*, .*Plank.*").getString(), ","));
+	        Comparator.WOOD.registerClass(Lib.splitAndTrim(config.get(CATEGORY_WOOD, "classes", ".*Wood.*, .*Plank.*, .*BlockFence.*").getString(), ","));
+	        Comparator.WOOD.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_WOOD, "oreDictionary", "plankWood").getString(), ","));
+	        Comparator.CROP.registerName(Lib.splitAndTrim(config.get(CATEGORY_CROP, "names", ".*Crop.*").getString(), ","));
+	        Comparator.CROP.registerClass(Lib.splitAndTrim(config.get(CATEGORY_CROP, "classes", ".*Crop.*, .*Bush.*").getString(), ","));
+	        Comparator.CROP.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_CROP, "oreDictionary", "").getString(), ","));
+	        Comparator.SEED.registerName(Lib.splitAndTrim(config.get(CATEGORY_SEED, "names", ".*Seed.*").getString(), ","));
+	        Comparator.SEED.registerClass(Lib.splitAndTrim(config.get(CATEGORY_SEED, "classes", ".*IPlantable.*, .*Seed.*").getString(), ","));
+	        Comparator.SEED.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_SEED, "oreDictionary", "").getString(), ","));
+	        Comparator.LEAVE.registerName(Lib.splitAndTrim(config.get(CATEGORY_LEAVE, "names", ".*Leave.*").getString(), ","));
+	        Comparator.LEAVE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_LEAVE, "classes", ".*Leave.*").getString(), ","));
+	        Comparator.LEAVE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_LEAVE, "oreDictionary", "").getString(), ","));
 
 	        config.save();
         }
         
-        @EventHandler // used in 1.6.2
-        //@PostInit   // used in 1.5.2
+        @EventHandler
         public void postInit(FMLPostInitializationEvent event) {
         }
         
-        @EventHandler // used in 1.6.2
-        //@Init       // used in 1.5.2
+        @EventHandler
         public void init(FMLInitializationEvent event) {
-        	// HarvestAssist
-            MinecraftForge.EVENT_BUS.register(new BlockBreakEventHandler());
-        	
+        	// Cutdown, Mineassist, Flatassist
+        	if(BlockBreakEventHandler.isEventEnable()){
+        		MinecraftForge.EVENT_BUS.register(BlockBreakEventHandler.INSTANCE);
+        	}
+                    	
         	// Unifier
-        	MinecraftForge.EVENT_BUS.register(new EntityJoinWorldHandler());
+        	if(EntityJoinWorldHandler.isEventEnable()){
+        		MinecraftForge.EVENT_BUS.register(EntityJoinWorldHandler.INSTANCE);
+        	}
         	
-        	// TorchAssist
-        	MinecraftForge.EVENT_BUS.register(new PlayerClickHandler());
+        	// TorchAssist, Bedassist, Cropassist, Leaveassist
+        	if(PlayerClickHandler.isEventEnable()){
+        		MinecraftForge.EVENT_BUS.register(PlayerClickHandler.INSTANCE);
+        	}
         	
         	// BreedAssist
-        	MinecraftForge.EVENT_BUS.register(EntityInteractHandler.INSTANCE);
+        	if(EntityInteractHandler.isEventEnable()){
+        		MinecraftForge.EVENT_BUS.register(EntityInteractHandler.INSTANCE);
+        	}
       }
 }

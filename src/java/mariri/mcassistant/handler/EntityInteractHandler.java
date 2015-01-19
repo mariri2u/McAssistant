@@ -19,9 +19,7 @@ public class EntityInteractHandler {
 	public static int BREEDASSIST_RADIUS;
 	public static int[][] BREEDASSIST_AFFECT_POTION;
 	
-	private EntityInteractHandler(){
-		
-	}
+	private EntityInteractHandler(){}
 	
 	@SubscribeEvent
 	public void onEntityInteract(EntityInteractEvent e){
@@ -49,7 +47,10 @@ public class EntityInteractHandler {
 					Lib.affectPotionEffect(player, BREEDASSIST_AFFECT_POTION, breedCount);
 				}
 			}
-
 		}
+	}
+	
+	public static boolean isEventEnable(){
+		return BREEDASSIST_ENABLE;
 	}
 }
