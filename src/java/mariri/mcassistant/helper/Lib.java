@@ -140,9 +140,12 @@ public class Lib {
 	
 	public static boolean compareCurrentToolClass(EntityPlayer player, String name){
 		boolean result = false;
-		for(String c : player.inventory.getCurrentItem().getItem().getToolClasses(player.inventory.getCurrentItem())){
-			result |= c.equals(name);
-		}
+		try{
+			ItemStack current = player.inventory.getCurrentItem();
+			for(String c : current.getItem().getToolClasses(player.inventory.getCurrentItem())){
+				result |= c.equals(name);
+			}
+		}catch(NullPointerException e){}
 		return result;
 	}
 	

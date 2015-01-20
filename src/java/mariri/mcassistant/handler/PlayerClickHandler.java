@@ -110,7 +110,7 @@ public class PlayerClickHandler {
 		// トーチ補助機能
 		else if(		TORCHASSIST_ENABLE &&
 				((Comparator.PICKAXE.compareCurrentItem(e.entityPlayer) ||  Lib.compareCurrentToolClass(e.entityPlayer, "pickaxe") )||
-				 (Comparator.SHOVEL.compareCurrentItem(e.entityPlayer) ||  Lib.compareCurrentToolClass(e.entityPlayer, "axe")) ) ){
+				 (Comparator.SHOVEL.compareCurrentItem(e.entityPlayer) ||  Lib.compareCurrentToolClass(e.entityPlayer, "shovel")) ) ){
 			ItemStack current = e.entityPlayer.getCurrentEquippedItem();
 			ItemStack torch = new ItemStack(Blocks.torch, 1);
 			// トーチを持っている場合

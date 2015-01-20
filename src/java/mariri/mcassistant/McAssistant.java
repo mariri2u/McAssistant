@@ -21,7 +21,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class McAssistant {
 
         public static final String MODID = "McAssistant";
-        public static final String VERSION = "1.7.2-1.4";
+        public static final String VERSION = "1.7.2-1.4a";
         
         private static final String CATEGORY_BREEDASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "breedassist";
         private static final String CATEGORY_CROPASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "cropassist";
@@ -282,13 +282,13 @@ public class McAssistant {
 	        Comparator.AXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_AXE, "names", ".*Axe, .*Tool.*").getString(), ","));
 	        Comparator.AXE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_AXE, "classes", ".*ItemAxe.*").getString(), ","));
 	        Comparator.AXE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_AXE, "oreDictionary", "").getString(), ","));
-	        Comparator.PICKAXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_PICKAXE, "names", ".*Pickaxe, .*Tool.*").getString(), ","));
+	        Comparator.PICKAXE.registerName(Lib.splitAndTrim(config.get(CATEGORY_PICKAXE, "names", ".*Pickaxe.*, .*Tool.*").getString(), ","));
 	        Comparator.PICKAXE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_PICKAXE, "classes", ".*ItemPickaxe.*").getString(), ","));
 	        Comparator.PICKAXE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_PICKAXE, "oreDictionary", "").getString(), ","));
-	        Comparator.SHOVEL.registerName(Lib.splitAndTrim(config.get(CATEGORY_SHOVEL, "names", ".*Tool.*").getString(), ","));
+	        Comparator.SHOVEL.registerName(Lib.splitAndTrim(config.get(CATEGORY_SHOVEL, "names", ".*Shovel.*, .*Tool.*").getString(), ","));
 	        Comparator.SHOVEL.registerClass(Lib.splitAndTrim(config.get(CATEGORY_SHOVEL, "classes", ".*ItemSpade.*").getString(), ","));
 	        Comparator.SHOVEL.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_SHOVEL, "oreDictionary", "").getString(), ","));
-	        Comparator.HOE.registerName(Lib.splitAndTrim(config.get(CATEGORY_HOE, "names", ".*Hoe, .*Tool.*").getString(), ","));
+	        Comparator.HOE.registerName(Lib.splitAndTrim(config.get(CATEGORY_HOE, "names", ".*Hoe.*, .*Tool.*").getString(), ","));
 	        Comparator.HOE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_HOE, "classes", ".*ItemHoe.*").getString(), ","));
 	        Comparator.HOE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_HOE, "oreDictionary", "").getString(), ","));
 	        Comparator.LOG.registerName(Lib.splitAndTrim(config.get(CATEGORY_LOG, "names", ".*Mushroom.*, .*log.*").getString(), ","));
