@@ -1,5 +1,8 @@
 package mariri.mcassistant.handler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import mariri.mcassistant.helper.Comparator;
 import mariri.mcassistant.helper.EdgeHarvester;
 import mariri.mcassistant.helper.Lib;
@@ -84,6 +87,10 @@ public class BlockBreakEventHandler {
 	public static int FLATASSIST_WOOD_MAX_RADIUS;
 	public static boolean FLATASSIST_WOOD_BREAK_ANYTHING;
 	
+	public static boolean SNEAK_INVERT;
+	
+	private static List<EntityPlayer> isProcessing = new ArrayList<EntityPlayer>();
+	
 	private BlockBreakEventHandler(){}
 	
 	@SubscribeEvent
@@ -95,10 +102,12 @@ public class BlockBreakEventHandler {
 		EntityPlayer player = e.getPlayer();
 		Block block = e.block;
 		
-		if(!world.isRemote && player != null && !player.isSneaking()){
+		if(!isProcessing.contains(player) && !world.isRemote && player != null && player.isSneaking() == SNEAK_INVERT){
+			isProcessing.add(player);
+			
 			// 木こり補助機能
 			if(		CUTDOWN_ENABLE && Comparator.LOG.compareBlock(block, e.blockMetadata) &&
-					(Comparator.AXE.compareCurrentItem(player) ||  Lib.compareCurrentToolClass(player, "axe"))&&
+					Lib.isAxeOnEquip(player) &&
 					(!CUTDOWN_ONLY_ROOT || Comparator.DIRT.compareBlock(world.getBlock(x, y - 1, z), world.getBlockMetadata(x, y - 1, z))) ){
 				EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, CUTDOWN_BELOW, CUTDOWN_MAX_DISTANCE);
 				harvester.setCheckMetadata(false);
@@ -135,15 +144,9 @@ public class BlockBreakEventHandler {
 					player.getFoodStats().getFoodLevel() >= MINEASSIST_REQUIRE_HUNGER &&
 					Lib.isEnchanted(player, MINEASSIST_REQUIRE_ENCHANT_LEVEL) &&
 					Comparator.ORE.compareBlock(block, e.blockMetadata) &&
-					(Comparator.PICKAXE.compareCurrentItem(player) || Lib.compareCurrentToolClass(player, "pickaxe"))){
+					Lib.isPickaxeOnEquip(player) ){
 				EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, true, MINEASSIST_MAX_DISTANCE);
 				harvester.setCheckMetadata(true);
-				// レッドストーンは光っていても同一視
-				// 光ってないレッドストーンを壊すとクラッシュする
-//				if(block == Blocks.redstone_ore){
-//					harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.lit_redstone_ore) });
-//					harvester.setCheckMetadata(false);
-//				}else if(block == Blocks.lit_redstone_ore){
 				if(block == Blocks.lit_redstone_ore){
 					harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.redstone_ore) });
 					harvester.setCheckMetadata(false);
@@ -176,7 +179,7 @@ public class BlockBreakEventHandler {
 				}else if(		FLATASSIST_DIRT_ENABLE &&
 						player.getFoodStats().getFoodLevel() >= FLATASSIST_DIRT_REQUIRE_HUNGER &&
 						Comparator.DIRT.compareBlock(block, e.blockMetadata) &&
-						(Comparator.SHOVEL.compareCurrentItem(player) ||  Lib.compareCurrentToolClass(player, "shovel") )&&
+						Lib.isShovelOnEquip(player) &&
 						Lib.compareCurrentToolLevel(player, FLATASSIST_DIRT_REQUIRE_TOOL_LEVEL)){
 					int plv = Lib.getPotionAffectedLevel(player, FLATASSIST_DIRT_REQUIRE_POTION_ID);
 					int elv = Lib.getEnchentLevel(player, FLATASSIST_DIRT_REQUIRE_ENCHANT_ID);
@@ -192,7 +195,7 @@ public class BlockBreakEventHandler {
 				}else if(	FLATASSIST_STONE_ENABLE &&
 							player.getFoodStats().getFoodLevel() >= FLATASSIST_STONE_REQUIRE_HUNGER &&
 							Comparator.STONE.compareBlock(block, e.blockMetadata) &&
-							(Comparator.PICKAXE.compareCurrentItem(player) || Lib.compareCurrentToolClass(player, "pickaxe"))&&
+							Lib.isPickaxeOnEquip(player) &&
 							Lib.compareCurrentToolLevel(player, FLATASSIST_STONE_REQUIRE_TOOL_LEVEL)){
 					int plv = Lib.getPotionAffectedLevel(player, FLATASSIST_STONE_REQUIRE_POTION_ID);
 					int elv = Lib.getEnchentLevel(player, FLATASSIST_STONE_REQUIRE_ENCHANT_ID);
@@ -207,7 +210,7 @@ public class BlockBreakEventHandler {
 				}else if(	FLATASSIST_WOOD_ENABLE &&
 							player.getFoodStats().getFoodLevel() >= FLATASSIST_WOOD_REQUIRE_HUNGER &&
 							Comparator.WOOD.compareBlock(block, e.blockMetadata) &&
-							(Comparator.AXE.compareCurrentItem(player) ||  Lib.compareCurrentToolClass(player, "axe"))&&
+							Lib.isAxeOnEquip(player) &&
 							Lib.compareCurrentToolLevel(player, FLATASSIST_WOOD_REQUIRE_TOOL_LEVEL)){
 					int plv = Lib.getPotionAffectedLevel(player, FLATASSIST_WOOD_REQUIRE_POTION_ID);
 					int elv = Lib.getEnchentLevel(player, FLATASSIST_WOOD_REQUIRE_ENCHANT_ID);
@@ -222,8 +225,6 @@ public class BlockBreakEventHandler {
 				}
 				
 				if(distance > 0 && harvester != null){
-//					EdgeHarvester harvester = new EdgeHarvester(world, player, x, y, z, block, e.blockMetadata, FLATASSIST_BELOW, distance);
-					
 					// 土・草・菌糸は同一視
 					if(block == Blocks.grass){
 						harvester.setIdentifyBlocks(new ItemStack[]{ new ItemStack(Blocks.dirt), new ItemStack(Blocks.mycelium) });
@@ -265,6 +266,8 @@ public class BlockBreakEventHandler {
 					e.setCanceled(true);
 				}
 			}
+			
+			isProcessing.remove(player);
 		}
 	}
 	

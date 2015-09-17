@@ -9,6 +9,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.util.AxisAlignedBB;
@@ -124,9 +125,21 @@ public class CropReplanter {
 		if(seed != null){
 			// 植え直しできた場合
 			if(seed.getItem().onItemUse(seed, player, world, x, y - 1, z, 1, 0, 0, 0)){
-				if(isAffectToolDamage && player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
-					player.destroyCurrentEquippedItem();
-		            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
+				
+				if(isAffectToolDamage){
+					ItemStack citem = player.inventory.getCurrentItem();
+					if(citem.getItem() instanceof ItemHoe){
+						if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
+							player.destroyCurrentEquippedItem();
+				            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
+						}
+					}else{
+						citem.getItem().onBlockDestroyed(citem, world, block, x, y, z, player);
+						if(citem.stackSize <= 0){
+							player.destroyCurrentEquippedItem();
+				            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
+						}
+					}
 				}
 			}
 		}

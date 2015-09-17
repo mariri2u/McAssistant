@@ -29,6 +29,59 @@ public class Lib {
 //		}
 //	}
 	
+	public static boolean COMPARE_TOOL_CLASSS;
+	public static boolean COMPARE_IS_HARVESTABLE;
+	
+	public static boolean isPickaxeOnEquip(EntityPlayer player){
+		if(player.inventory.getCurrentItem() == null){
+			return false;
+		}else{
+			return compareToolClass(Blocks.stone, 0, player.inventory.getCurrentItem(), Comparator.PICKAXE, "pickaxe");
+		}
+	}
+
+	public static boolean isShovelOnEquip(EntityPlayer player){
+		if(player.inventory.getCurrentItem() == null){
+			return false;
+		}else{
+			return compareToolClass(Blocks.dirt, 0, player.inventory.getCurrentItem(), Comparator.SHOVEL, "shovel");
+		}
+	}
+	
+	public static boolean isAxeOnEquip(EntityPlayer player){
+		if(player.inventory.getCurrentItem() == null){
+			return false;
+		}else{
+			return compareToolClass(Blocks.log, 0, player.inventory.getCurrentItem(), Comparator.AXE, "axe");
+		}
+	}
+	
+	public static boolean compareToolClass(Block block, int meta, ItemStack tool, Comparator comparator, String toolClass){
+		boolean result = false;
+		try{
+			if(comparator.compareDisallow(tool.getItem())){
+				return false;
+			}
+			Set<String> toolClasses = tool.getItem().getToolClasses(tool);
+			if(COMPARE_TOOL_CLASSS){
+				if(toolClasses.size() > 0){
+					for(String tc : toolClasses){
+						result |= tc == toolClass;
+					}
+				}else if(COMPARE_IS_HARVESTABLE){
+//					result |= Lib.isHarvestable(block, meta, player.inventory.getCurrentItem());
+					result |= tool.getItem().canHarvestBlock(block, tool);
+				}
+			}
+			if(!result){
+				result |= comparator.compareItem(tool);
+			}
+		}catch(NullPointerException e) {
+			result = false;
+		}
+		return result;
+	}
+	
 	public static void affectPotionEffect(EntityPlayer player, int[][] potion, int count){
 		if(count > 1 && potion != null && potion.length > 0){
 			for(int[] pote : potion){

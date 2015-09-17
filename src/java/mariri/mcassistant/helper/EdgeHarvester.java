@@ -150,25 +150,9 @@ public class EdgeHarvester {
 			Lib.spawnItem(world, target.x, target.y, target.z, drops);
 		}
 		Lib.affectPotionEffect(player, potion, count);
-//		if(potion != null && potion.length > 0){
-//			for(int[] pote : potion){
-//				if(pote != null && pote.length == 3){
-//					PotionEffect effect = player.getActivePotionEffect(Potion.potionTypes[pote[0]]);
-//					if(effect != null && effect.getAmplifier() == pote[1] - 1){
-//						player.addPotionEffect(new PotionEffect(pote[0], effect.getDuration() + pote[2] * count, pote[1] - 1));
-//					}else{
-//						player.addPotionEffect(new PotionEffect(pote[0], pote[2] * count, pote[1] - 1));
-//					}
-//				}
-//			}
-//		}
 		return count;
 	}
 	
-//	public int findEdge(){
-//		return findEdge(false);
-//	}
-//	
 	public int findEdge(boolean square){
 		Coord edge = path.getLast().copy();
 		Coord prev = edge.copy();
@@ -297,10 +281,13 @@ public class EdgeHarvester {
 		}
 		// 武器の耐久値を減らす
 		if(		player.inventory.getCurrentItem() != null && edblk != Blocks.air &&
-				(!targetIdentify || idBreakTool) /* 葉っぱブロック破壊時は耐久消費無し */ &&
-				player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
-			player.destroyCurrentEquippedItem();
-            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
+				(!targetIdentify || idBreakTool) /* 葉っぱブロック破壊時は耐久消費無し */){
+			ItemStack citem = player.inventory.getCurrentItem();
+			citem.getItem().onBlockDestroyed(citem, world, edblk, edge.x, edge.y, edge.z, player);
+			if(citem.stackSize <= 0){
+				player.destroyCurrentEquippedItem();
+//	            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
+			}
 		}
 		
 		if(path.size() > 1){
@@ -339,10 +326,4 @@ public class EdgeHarvester {
 			return new Coord(x, y, z);
 		}
 	}
-	
-//	protected void spawnItem(ItemStack itemstack){
-////		Lib.spawnItem(world, target.x, target.y, target.z, itemstack);
-//		Lib.spawnItem(world, path.get(0).x, path.get(0).y, path.get(0).z, itemstack);
-//	}
-
 }
