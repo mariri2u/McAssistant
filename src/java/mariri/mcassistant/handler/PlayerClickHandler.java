@@ -74,8 +74,50 @@ public class PlayerClickHandler {
 		World world = e.entityPlayer.worldObj;
 		Block block = world.getBlock(e.x, e.y, e.z);// Block.blocksList[world.getBlockId(e.x, e.y, e.z)];
 		int meta = world.getBlockMetadata(e.x, e.y, e.z);
+		
+		// 農業補助機能
+		if(		CROPASSIST_ENABLE && !world.isAirBlock(e.x, e.y, e.z) &&
+				Comparator.CROP.compareBlock(block, meta) &&
+				Comparator.HOE.compareCurrentItem(e.entityPlayer) &&
+				Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_REQUIRE_TOOL_LEVEL)){
+
+			if(CROPASSIST_AREA_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_AREA_REQUIRE_TOOL_LEVEL)){
+				int count = 0;
+				int area = (CROPASSIST_AREAPLUS_ENABLE && Lib.compareCurrentToolLevel(e.entityPlayer, CROPASSIST_AREAPLUS_REQUIRE_TOOL_LEVEL)) ? 2 : 1;
+				for(int xi = -1 * area; xi <= area; xi++){
+					for(int zi = -1 * area; zi <= area; zi++){
+						Block b = world.getBlock(e.x + xi, e.y, e.z + zi);
+//						int m = world.getBlockMetadata(e.x + xi, e.y, e.z + zi);
+//						if(block == b && meta == m && (b instanceof BlockContainer || m > 0)){
+						if(block == b){
+//							CropReplanter harvester = new CropReplanter(world, e.entityPlayer, e.x + xi, e.y, e.z + zi, b, m);
+//							harvester.setAffectToolDamage(xi == 0 && zi == 0);
+//							b.harvestBlock(world, e.entityPlayer, e.x + xi, e.y, e.z + zi, m);
+//							world.setBlockToAir(e.x + xi, e.y, e.z + zi);
+//							harvester.findDrops();
+//							harvester.harvestCrop();
+							b.onBlockActivated(world, e.x + xi, e.y, e.z + zi, e.entityPlayer, e.useItem.ordinal(), 0, 0, 0);
+							count++;
+						}
+					}
+				}
+//	            world.playSoundAtEntity(e.entityPlayer, Block.soundTypeGrass.getBreakSound(), Block.soundTypeGrass.getVolume(), Block.soundTypeGrass.getPitch());
+				Lib.affectPotionEffect(e.entityPlayer, CROPASSIST_AREA_AFFECT_POTION, count);
+//			}else{
+//				// 収穫後の連続クリック対策（MOD独自の方法で成長を管理している場合は対象外）
+//				if(block instanceof BlockContainer || meta > 0){
+//					CropReplanter harvester = new CropReplanter(world, e.entityPlayer, e.x, e.y, e.z, block, meta);
+//					block.harvestBlock(world, e.entityPlayer, e.x, e.y, e.z, meta);
+//					world.setBlockToAir(e.x, e.y, e.z);
+//					harvester.findDrops();
+//					harvester.harvestCrop();
+//		            world.playSoundAtEntity(e.entityPlayer, Block.soundTypeGrass.getBreakSound(), Block.soundTypeGrass.getVolume(), Block.soundTypeGrass.getPitch());
+//				}
+			}
+			e.setCanceled(true);
+		}
 		// ベッド補助機能
-		if(BEDASSIST_ENABLE && block == Blocks.bed){
+		else if(BEDASSIST_ENABLE && block == Blocks.bed){
 			// いつでもリスポーンセット
 			if(BEDASSIST_SET_RESPAWN_ANYTIME){
 	        	ChunkCoordinates respawn = new ChunkCoordinates(e.x, e.y, e.z);
