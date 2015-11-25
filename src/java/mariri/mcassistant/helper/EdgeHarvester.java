@@ -6,11 +6,12 @@ import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.monster.EntitySilverfish;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
@@ -30,6 +31,7 @@ public class EdgeHarvester {
 	private Coord coreCoord;
 	private boolean idBreakTool;
 	private int findRange;
+	private boolean breakAnything;
 	
 	protected World world;
 	protected EntityPlayer player;
@@ -56,6 +58,7 @@ public class EdgeHarvester {
 		this.drops = new LinkedList<ItemStack>();
 		this.idBreakTool = true;
 		this.findRange = 1;
+		this.breakAnything = false;
 	}
 	
 	public EdgeHarvester setIdentifyBlocks(IBlockState[] blocks){
@@ -95,6 +98,11 @@ public class EdgeHarvester {
 	
 	public EdgeHarvester setFindRange(int value){
 		this.findRange = value;
+		return this;
+	}
+	
+	public EdgeHarvester setBreakAnything(boolean value){
+		this.breakAnything = value;
 		return this;
 	}
 	
@@ -148,25 +156,9 @@ public class EdgeHarvester {
 			Lib.spawnItem(world, target.x, target.y, target.z, drops);
 		}
 		Lib.affectPotionEffect(player, potion, count);
-//		if(potion != null && potion.length > 0){
-//			for(int[] pote : potion){
-//				if(pote != null && pote.length == 3){
-//					PotionEffect effect = player.getActivePotionEffect(Potion.potionTypes[pote[0]]);
-//					if(effect != null && effect.getAmplifier() == pote[1] - 1){
-//						player.addPotionEffect(new PotionEffect(pote[0], effect.getDuration() + pote[2] * count, pote[1] - 1));
-//					}else{
-//						player.addPotionEffect(new PotionEffect(pote[0], pote[2] * count, pote[1] - 1));
-//					}
-//				}
-//			}
-//		}
 		return count;
 	}
 	
-//	public int findEdge(){
-//		return findEdge(false);
-//	}
-//	
 	public int findEdge(boolean square){
 		Coord edge = path.getLast().copy();
 		Coord prev = edge.copy();
@@ -230,6 +222,11 @@ public class EdgeHarvester {
 	
 	private boolean matchBlock(BlockPos pos){
 		boolean result = false;
+		
+		if(breakAnything){
+			result |= Lib.isHarvestable(world.getBlockState(pos), player.inventory.getCurrentItem());
+		}
+		
 		result |= matchBlock(pos, state);
 		currentIdentify = false;
 		if(!result && idCompare != null){
@@ -273,14 +270,7 @@ public class EdgeHarvester {
 		int edmeta = edblk.getMetaFromState(edst);
 		int exp = edblk.getExpDrop(world, edpos, fortune);
 		world.setBlockToAir(edpos);
-		if(edblk == Blocks.monster_egg){
-			EntitySilverfish entitysilverfish = new EntitySilverfish(world);
-			entitysilverfish.setLocationAndAngles((double)edpos.getX() + 0.5D, (double)edpos.getY(), (double)edpos.getZ() + 0.5D, 0.0F, 0.0F);
-			world.spawnEntityInWorld(entitysilverfish);
-			entitysilverfish.spawnExplosionParticle();
-		}else{
-			edblk.onBlockDestroyedByPlayer(world, edpos, state);
-		}
+		edblk.onBlockDestroyedByPlayer(world, edpos, edst);
 		// 葉っぱブロック破壊時はシルクタッチを無視する
 		if(isSilkHarvest(edpos, edst)){
 			ItemStack drop = new ItemStack(edblk, 1, edmeta);
@@ -290,19 +280,31 @@ public class EdgeHarvester {
 			if(dropAfter) { drops.add(drop); }
 			else{ Lib.spawnItem(world, edge.x, edge.y, edge.z, drop); }
 		}else{
-			List<ItemStack> drop = edblk.getDrops(world, edge.getPos(), edst, fortune);
-			if(dropAfter && drop != null && drop.size() > 0) {
-				for(ItemStack d : drop){ drops.add(d); }
+			edblk.dropBlockAsItem(world, edpos, edst, fortune);
+			if(dropAfter){
+				List<EntityItem> entityList = world.getEntitiesWithinAABB(EntityItem.class,
+						AxisAlignedBB.fromBounds(edge.x - 1, edge.y - 1, edge.z - 1, edge.x + 2, edge.y + 2, edge.z + 2));
+				for(EntityItem item : entityList){
+					drops.add(item.getEntityItem().copy());
+					item.getEntityItem().stackSize = 0;
+				}
 			}
-			else { Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getDrops(world, edpos, edst, fortune)); }
+//			List<ItemStack> drop = edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune);
+//			if(dropAfter && drop != null && drop.size() > 0) {
+//				for(ItemStack d : drop){ drops.add(d); }
+//			}
+//			else { Lib.spawnItem(world, edge.x, edge.y, edge.z, edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune)); }
 			edblk.dropXpOnBlockBreak(world, edge.getPos(), exp);
 		}
 		// 武器の耐久値を減らす
 		if(		player.inventory.getCurrentItem() != null && edblk != Blocks.air &&
-				(!targetIdentify || idBreakTool) /* 葉っぱブロック破壊時は耐久消費無し */ &&
-				player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
-			player.destroyCurrentEquippedItem();
-            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
+				(!targetIdentify || idBreakTool) /* 葉っぱブロック破壊時は耐久消費無し */){
+			ItemStack citem = player.inventory.getCurrentItem();
+			citem.getItem().onBlockDestroyed(citem, world, edblk, edpos, player);
+			if(citem.stackSize <= 0){
+				player.destroyCurrentEquippedItem();
+//	            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
+			}
 		}
 		
 		if(path.size() > 1){
@@ -355,10 +357,4 @@ public class EdgeHarvester {
 			return new Coord(x, y, z);
 		}
 	}
-	
-//	protected void spawnItem(ItemStack itemstack){
-////		Lib.spawnItem(world, target.x, target.y, target.z, itemstack);
-//		Lib.spawnItem(world, path.get(0).x, path.get(0).y, path.get(0).z, itemstack);
-//	}
-
 }

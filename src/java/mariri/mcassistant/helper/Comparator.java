@@ -14,6 +14,7 @@ public class Comparator {
 	private List<String> classes;
 	private List<String> names;
 	private List<String> oredicts;
+	private List<String> disallows;
 	
 	public static Comparator SEED = new Comparator();
 	public static Comparator CROP = new Comparator();
@@ -29,6 +30,7 @@ public class Comparator {
 	public static Comparator WOOD = new Comparator();
 	public static Comparator SAPLING = new Comparator();
 	public static Comparator LEAVE = new Comparator();
+	public static Comparator FEED = new Comparator();
 	
 	protected Comparator(){
 	}
@@ -60,6 +62,15 @@ public class Comparator {
 		}
 	}
 	
+	public void registerDisallow(String s){
+		if(disallows == null){
+			disallows = new ArrayList<String>();
+		}
+		if(!"".equals(s)){
+			disallows.add(s);
+		}
+	}
+	
 	public void registerClass(String[] arr){
 		if(arr != null){
 			for(String s : arr){
@@ -80,6 +91,14 @@ public class Comparator {
 		if(arr != null){
 			for(String s : arr){
 				registerOreDict(s);
+			}
+		}
+	}
+	
+	public void registerDisallow(String[] arr){
+		if(arr != null){
+			for(String s : arr){
+				registerDisallow(s);
 			}
 		}
 	}
@@ -119,6 +138,26 @@ public class Comparator {
 		return result;
 	}
 	
+	public boolean compareDisallow(Item item){
+		boolean result = false;
+		try{
+			for(String regex : disallows){
+				result |= item.getUnlocalizedName().toLowerCase().matches(regex);
+			}
+		}catch(NullPointerException e){}
+		return result;
+	}
+	
+	public boolean compareDisallow(Block b){
+		boolean result = false;
+		try{
+			for(String regex : disallows){
+				result |= b.getUnlocalizedName().toLowerCase().matches(regex);
+			}
+		}catch(NullPointerException e){}
+		return result;
+	}
+	
 	private boolean compareOreDict(ItemStack item){
 		boolean result = false;
 		List<ItemStack> od = findOreDict(item);
@@ -128,7 +167,6 @@ public class Comparator {
 	
 	public List<ItemStack> findOreDict(ItemStack item){
 		List<ItemStack> result = new ArrayList<ItemStack>();
-		if(item == null || item.getItem() == null) { return result; }
 		try{
 			for(int oreId : OreDictionary.getOreIDs(item)){
 		    	if(oreId >= 0){
@@ -141,34 +179,52 @@ public class Comparator {
 		    	}
 	    	}
 
+		}catch(IllegalArgumentException e){
 		}catch(NullPointerException e){}
 		return result;
 	}
 	
 	//
-	public boolean compareBlock(IBlockState state){
-		Block block = state.getBlock();
-		int meta = block.getMetaFromState(state);
-		return compareName(block) || compareClass(block) || compareOreDict(new ItemStack(block, 1, meta));
-	}
-	
-//	public boolean compareBlock(ItemStack itemstack){
-////		Block block = Block.blocksList[itemstack.getItem().itemID];
-//		Block block = ((ItemBlock)itemstack.getItem()).block;
-//		return compareName(block) || compareClass(block) || compareOreDict(itemstack);
+//	public boolean compareBlock(Block block, int meta){
+//		if(compareDisallow(block)){
+//			return false;
+//		}else{
+//			return compareName(block) || compareClass(block) || compareOreDict(new ItemStack(block, 1, meta));
+//		}
 //	}
 	
+	public boolean compareBlock(IBlockState state){
+//		Block block = Block.blocksList[itemstack.getItem().itemID];
+		Block block = state.getBlock();
+		int meta = block.getMetaFromState(state);
+		if(compareDisallow(block)){
+			return false;
+		}else{
+			return compareName(block) || compareClass(block) || compareOreDict(new ItemStack(block, 1, meta));
+		}
+	}
+	
 	public boolean compareItem(Item item){
-		return compareName(item) || compareClass(item) || compareOreDict(new ItemStack(item));
+		if(compareDisallow(item)){
+			return false;
+		}else{
+			return compareName(item) || compareClass(item) || compareOreDict(new ItemStack(item));
+		}
 	}
 	
 	public boolean compareItem(ItemStack itemstack){
 		Item item = itemstack.getItem();
-		return compareName(item) || compareClass(item) || compareOreDict(itemstack);
+		if(compareDisallow(item)){
+			return false;
+		}else{
+			return compareName(item) || compareClass(item) || compareOreDict(itemstack);
+		}
 	}
 	
 	public boolean compareCurrentItem(EntityPlayer player){
 		if(player.inventory.getCurrentItem() == null){
+			return false;
+		}else if(compareDisallow(player.inventory.getCurrentItem().getItem())){
 			return false;
 		}else{
 			Item item = player.inventory.getCurrentItem().getItem();

@@ -1,7 +1,9 @@
 package mariri.mcassistant.handler;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import mariri.mcassistant.helper.Comparator;
 import mariri.mcassistant.helper.Lib;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
@@ -19,20 +21,23 @@ public class EntityInteractHandler {
 	public static int BREEDASSIST_RADIUS;
 	public static int[][] BREEDASSIST_AFFECT_POTION;
 	
-	private EntityInteractHandler(){
-		
-	}
+	public static boolean SNEAK_INVERT;
+	
+	private static List<EntityPlayer> isProcessing = new ArrayList<EntityPlayer>();
+
+	private EntityInteractHandler(){}
 	
 	@SubscribeEvent
 	public void onEntityInteract(EntityInteractEvent e){
 		EntityPlayer player = e.entityPlayer;
 		World world = player.worldObj;
-		if(!world.isRemote && !player.isSneaking()){
+		if(!isProcessing.contains(player) && !world.isRemote && player.isSneaking() == SNEAK_INVERT){
+			isProcessing.add(player);
 			// BreedAssist
 			if(BREEDASSIST_ENABLE && e.target instanceof EntityAnimal){
 				EntityAnimal target = (EntityAnimal)e.target;
 				ItemStack current = player.inventory.getCurrentItem();
-				if(current != null && target.isBreedingItem(current)){
+				if(current != null && Comparator.FEED.compareItem(current) && target.isBreedingItem(current)){
 					int breedCount = 0;
 					List<EntityAnimal> list = world.getEntitiesWithinAABB(target.getClass(),
 							AxisAlignedBB.fromBounds(
@@ -47,9 +52,14 @@ public class EntityInteractHandler {
 						}
 					}
 					Lib.affectPotionEffect(player, BREEDASSIST_AFFECT_POTION, breedCount);
+					e.setCanceled(true);
 				}
 			}
-
+			isProcessing.remove(player);
 		}
+	}
+	
+	public static boolean isEventEnable(){
+		return BREEDASSIST_ENABLE;
 	}
 }
