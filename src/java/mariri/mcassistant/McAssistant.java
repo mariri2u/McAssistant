@@ -24,7 +24,7 @@ import net.minecraftforge.oredict.OreDictionary;
 public class McAssistant {
 
         public static final String MODID = "McAssistant";
-        public static final String VERSION = "1.8.0-1.1";
+        public static final String VERSION = "1.8.9-1.1a";
         
         private static final String CATEGORY_BREEDASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "breedassist";
         private static final String CATEGORY_CROPASSIST = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "cropassist";
@@ -371,7 +371,7 @@ public class McAssistant {
 	        Comparator.LEAVE.registerClass(Lib.splitAndTrim(config.get(CATEGORY_LEAVE, "classes", ".*Leave.*").getString(), ","));
 	        Comparator.LEAVE.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_LEAVE, "oreDictionary", "").getString(), ","));
 	        Comparator.LEAVE.registerDisallow(Lib.splitAndTrim(config.get(CATEGORY_LEAVE, "disallow", "").getString(), ","));
-	        Comparator.FEED.registerName(Lib.splitAndTrim(config.get(CATEGORY_FEED, "names", ".*wheat.*, .*wheat_seeds.*, .*carrot.*").getString(), ","));
+	        Comparator.FEED.registerName(Lib.splitAndTrim(config.get(CATEGORY_FEED, "names", ".*wheat.*, .*seeds.*, .*carrot.*").getString(), ","));
 	        Comparator.FEED.registerClass(Lib.splitAndTrim(config.get(CATEGORY_FEED, "classes", "").getString(), ","));
 	        Comparator.FEED.registerOreDict(Lib.splitAndTrim(config.get(CATEGORY_FEED, "oreDictionary", "").getString(), ","));
 	        Comparator.FEED.registerDisallow(Lib.splitAndTrim(config.get(CATEGORY_FEED, "disallow", "").getString(), ","));
