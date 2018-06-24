@@ -9,6 +9,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Enchantments;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemShears;
@@ -41,6 +42,7 @@ public class EntityInteractHandler {
 	@SubscribeEvent
 	public void onEntityInteract(PlayerInteractEvent.EntityInteract e){
 		EntityPlayer player = e.getEntityPlayer();
+		EntityPlayerMP player_mp = (player instanceof EntityPlayerMP) ? (EntityPlayerMP) player : null;
 		World world = player.world;
 		EnumHand hand = e.getHand();
 		if(!isProcessing.contains(player) && !world.isRemote && player.isSneaking() == SNEAK_INVERT){
@@ -62,7 +64,7 @@ public class EntityInteractHandler {
 								shearCount++;
 								// ハサミにダメージ
 								if(current != null && current.getItem() instanceof ItemShears){
-									if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
+									if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG(), player_mp)){
 										player.inventory.deleteStack(player.inventory.getCurrentItem());
 										world.playSound(player, player.getPosition(), SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
 									}

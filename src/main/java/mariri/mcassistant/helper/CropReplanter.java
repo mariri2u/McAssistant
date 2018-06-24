@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
@@ -66,7 +67,7 @@ public class CropReplanter {
                 world.getEntitiesWithinAABB(EntityItem.class,
                 new AxisAlignedBB(x - 1, y - 1, z - 1, x + 2, y + 2, z + 2));
         for(EntityItem item : entityList){
-            if(Comparator.SEED.compareItem(item.getEntityItem().getItem())){
+            if(Comparator.SEED.compareItem(item.getItem().getItem())){
                 entity = item;
             }
         }
@@ -83,7 +84,7 @@ public class CropReplanter {
         List<EntityItem> entityList = world.getEntitiesWithinAABB(EntityItem.class,
                 new AxisAlignedBB(x - 1, y - 1, z - 1, x + 2, y + 2, z + 2));
         for(EntityItem item : entityList){
-            drops.add(item.getEntityItem());
+            drops.add(item.getItem());
         }
     }
 
@@ -104,7 +105,7 @@ public class CropReplanter {
             for(ItemStack m : drops){
                 InventoryCrafting recipe = new InventoryCrafting(player.inventoryContainer, 1, 1);
                 recipe.setInventorySlotContents(0, m);
-                ItemStack p = CraftingManager.getInstance().findMatchingRecipe(recipe, world);
+                ItemStack p = CraftingManager.findMatchingRecipe(recipe, world).getRecipeOutput();
                 if(p != null && Comparator.SEED.compareItem(p.getItem())){
                     product = p;
                     material = m;
@@ -157,7 +158,8 @@ public class CropReplanter {
                 if(isAffectToolDamage){
                     ItemStack citem = player.inventory.getCurrentItem();
                     if(citem != null && citem.getItem() instanceof ItemHoe){
-                        if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG())){
+                    	EntityPlayerMP playerMP = (player instanceof EntityPlayerMP) ? (EntityPlayerMP)player : null ;
+                        if(player.inventory.getCurrentItem().attemptDamageItem(1, player.getRNG(), playerMP)){
                             player.inventory.deleteStack(player.inventory.getCurrentItem());
 
                             world.playSound(player, pos, SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);

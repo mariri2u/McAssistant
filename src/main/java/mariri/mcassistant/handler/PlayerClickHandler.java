@@ -11,6 +11,7 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Biomes;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
@@ -132,7 +133,9 @@ public class PlayerClickHandler {
 				}
 				ItemStack citem = e.getEntityPlayer().inventory.getCurrentItem();
 				if(citem.getItem() instanceof ItemHoe){
-					if(e.getEntityPlayer().inventory.getCurrentItem().attemptDamageItem(1, e.getEntityPlayer().getRNG())){
+					EntityPlayer player = e.getEntityPlayer();
+					EntityPlayerMP playerMP = (player instanceof EntityPlayerMP) ? (EntityPlayerMP)player : null;
+					if(e.getEntityPlayer().inventory.getCurrentItem().attemptDamageItem(1, e.getEntityPlayer().getRNG(),  playerMP)){
 						e.getEntityPlayer().inventory.deleteStack(e.getEntityPlayer().inventory.getCurrentItem());
 						world.playSound(e.getEntityPlayer(), e.getPos(), SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
 					}
@@ -208,7 +211,7 @@ public class PlayerClickHandler {
 			for(int i = 0; i < e.getEntityPlayer().inventory.mainInventory.size(); i++){
 				ItemStack itemstack = e.getEntityPlayer().inventory.mainInventory.get(i);
 				if(itemstack != null && itemstack.getItem() instanceof ItemBlock){
-					if(((ItemBlock)itemstack.getItem()).block == Blocks.TORCH){
+					if(((ItemBlock)itemstack.getItem()).getBlock() == Blocks.TORCH){
 						index = i;
 					}
 				}

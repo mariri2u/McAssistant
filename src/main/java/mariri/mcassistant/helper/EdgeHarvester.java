@@ -149,7 +149,7 @@ public class EdgeHarvester {
 						world.isAirBlock(c.getPos()) &&
 						Comparator.DIRT.compareBlock(world.getBlockState(c.getUnderPos()))){
 //					items.getItem().onItemUse(items, player, world, c.x, c.y, c.z, 0, 0, 0, 0);
-					world.setBlockState(c.getPos(), ((ItemBlock)items.getItem()).block.getStateFromMeta(items.getItemDamage()), 2);
+					world.setBlockState(c.getPos(), ((ItemBlock)items.getItem()).getBlock().getStateFromMeta(items.getItemDamage()), 2);
 					items.setCount(items.getCount() - 1);
 				}
 			}
@@ -301,8 +301,8 @@ public class EdgeHarvester {
 				List<EntityItem> entityList = world.getEntitiesWithinAABB(EntityItem.class,
 						new AxisAlignedBB(edge.x - 1, edge.y - 1, edge.z - 1, edge.x + 2, edge.y + 2, edge.z + 2));
 				for(EntityItem item : entityList){
-					drops.add(item.getEntityItem().copy());
-					item.getEntityItem().setCount(0);
+					drops.add(item.getItem().copy());
+					item.getItem().setCount(0);
 				}
 			}
 //			List<ItemStack> drop = edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune);

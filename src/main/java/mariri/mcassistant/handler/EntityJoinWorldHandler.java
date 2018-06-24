@@ -28,7 +28,7 @@ public class EntityJoinWorldHandler {
 			isProcessing.add(e.getEntity());
 			if(UNIFY_ENEBLE && e.getEntity() instanceof EntityItem){
 				EntityItem entity = (EntityItem)e.getEntity();
-				ItemStack dropItem = (ItemStack)((EntityItem)e.getEntity()).getEntityItem();
+				ItemStack dropItem = entity.getItem();
 				List<ItemStack> oredict = Comparator.UNIFY.findOreDict(dropItem);
 				if(oredict != null && oredict.size() > 0 && !Comparator.UNIFY.compareDisallow(dropItem.getItem())){
 					// ドロップアイテムの書き換え
@@ -37,7 +37,7 @@ public class EntityJoinWorldHandler {
 						if(!Comparator.UNIFY.compareDisallow(replace)){
 //							ItemStack newItem = new ItemStack(replace, dropItem.getCount(), dropItem.getMetadata(), dropItem.getTagCompound());
 							i.setCount(dropItem.getCount());
-							entity.setEntityItemStack(i);
+							entity.setItem(i);
 
 //				    		dropItem.setItem(replace);
 //							dropItem.setItemDamage(i.getItemDamage());
