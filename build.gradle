@@ -1,0 +1,9 @@
+tasks.withType(Jar) {
+	compileJava.options.encoding = 'UTF-8'
+}
+sourceSets.main {
+    java.srcDirs project.projectDir.name
+    resources.srcDirs project.projectDir.name
+}
+dependencies { compile fileTree(dir: 'lib', include: '*.jar') }
+version = "1.10.2-1.2"
