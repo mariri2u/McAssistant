@@ -46,7 +46,7 @@ public class EntityMountHandler {
 						world.getEntitiesWithinAABB(EntityItem.class,
 								new AxisAlignedBB(mount.posX - 5, mount.posY - 5, mount.posZ - 5, mount.posX + 5, mount.posY + 5, mount.posZ + 5));
 				for(EntityItem item : drops){
-					player.inventory.addItemStackToInventory(item.getEntityItem());
+					player.inventory.addItemStackToInventory(item.getItem());
 					item.setDead();
 				}
 			}

@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -32,6 +33,7 @@ public class Comparator {
 	public static Comparator LEAVE = new Comparator();
 	public static Comparator FEED = new Comparator();
 	public static Comparator SHEAR = new Comparator();
+	public static Comparator MOUNT = new Comparator();
 
 	protected Comparator(){
 	}
@@ -139,6 +141,16 @@ public class Comparator {
 		return result;
 	}
 
+	private boolean compareName(Entity e){
+		boolean result = false;
+		try{
+			for(String regex : names){
+				result |= e.getName().toLowerCase().matches(regex);
+			}
+		}catch(NullPointerException ex){}
+		return result;
+	}
+
 	public boolean compareDisallow(Item item){
 		boolean result = false;
 		try{
@@ -156,6 +168,16 @@ public class Comparator {
 				result |= b.getUnlocalizedName().toLowerCase().matches(regex);
 			}
 		}catch(NullPointerException e){}
+		return result;
+	}
+
+	public boolean compareDisallow(Entity e){
+		boolean result = false;
+		try{
+			for(String regex : disallows){
+				result |= e.getName().toLowerCase().matches(regex);
+			}
+		}catch(NullPointerException ex){}
 		return result;
 	}
 
@@ -233,4 +255,11 @@ public class Comparator {
 		}
 	}
 
+	public boolean compareEntity(Entity entity){
+		if(compareDisallow(entity)){
+			return false;
+		}else{
+			return compareName(entity) || compareClass(entity);
+		}
+	}
 }
