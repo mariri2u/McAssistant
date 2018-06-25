@@ -10,6 +10,7 @@ import mariri.mcassistant.helper.Comparator;
 import mariri.mcassistant.helper.CropReplanter;
 import mariri.mcassistant.helper.Lib;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -21,7 +22,7 @@ import net.minecraftforge.fml.common.ModMetadata;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.oredict.OreDictionary;
 
 
@@ -34,7 +35,7 @@ import net.minecraftforge.oredict.OreDictionary;
 public class McAssistant {
 
         public static final String MODID = "McAssistant";
-        public static final String VERSION = "1.10.2-1.2";
+        public static final String VERSION = "1.12.2-1.0";
         public static final String CONFIG_LANG = "mcassistant.config";
         public static Configuration CONFIG;
 
@@ -170,7 +171,8 @@ public class McAssistant {
 	        			String modid = s[1];
 	        			String name = s[2];
 	        			int meta = Integer.parseInt(s[3]);
-	        			ItemStack item = new ItemStack(GameRegistry.findItem(modid, name));
+//	        			ItemStack item = new ItemStack(GameRegistry.findItem(modid, name));
+	        			ItemStack item = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(modid, name)));
 	        			item.setItemDamage(meta);
 	        			OreDictionary.registerOre(key, item);
 	        		}

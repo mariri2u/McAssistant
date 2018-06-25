@@ -14,18 +14,30 @@ public class McAssistantGuiFactory implements IModGuiFactory{
 	@Override
 	public void initialize (Minecraft mc){}
 
-	@Override
-	public Class<? extends GuiScreen> mainConfigGuiClass(){
-		return McAssistantConfigGui.class;
-	}
+//	@Override
+//	public Class<? extends GuiScreen> mainConfigGuiClass(){
+//		return McAssistantConfigGui.class;
+//	}
 
 	@Override
 	public Set<RuntimeOptionCategoryElement> runtimeGuiCategories(){
 		return null;
 	}
 
+//	@Override
+//	public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element){
+//		return null;
+//	}
+
 	@Override
-	public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element){
+	public boolean hasConfigGui() {
+		// TODO 自動生成されたメソッド・スタブ
+		return false;
+	}
+
+	@Override
+	public GuiScreen createConfigGui(GuiScreen parentScreen) {
+		// TODO 自動生成されたメソッド・スタブ
 		return null;
 	}
 }
