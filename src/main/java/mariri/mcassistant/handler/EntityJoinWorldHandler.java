@@ -41,9 +41,11 @@ public class EntityJoinWorldHandler {
 					for(ItemStack i : oredict){
 						Item replace = i.getItem();
 						if(!Comparator.UNIFY.compareDisallow(replace)){
-//							ItemStack newItem = new ItemStack(replace, dropItem.getCount(), dropItem.getMetadata(), dropItem.getTagCompound());
-							i.setCount(dropItem.getCount());
-							entity.setItem(i);
+							ItemStack newItem = new ItemStack(replace, dropItem.getCount(), dropItem.getMetadata(), dropItem.getTagCompound());
+							entity.setItem(newItem);
+
+//							i.setCount(dropItem.getCount());
+//							entity.setItem(i);
 
 //				    		dropItem.setItem(replace);
 //							dropItem.setItemDamage(i.getItemDamage());

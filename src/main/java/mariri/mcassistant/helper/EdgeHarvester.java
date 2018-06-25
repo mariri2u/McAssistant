@@ -25,7 +25,8 @@ public class EdgeHarvester {
 	private Comparator idCompare;
 	private boolean dropAfter;
 	private boolean isReplant;
-	private List<ItemStack> drops;
+//	private List<ItemStack> drops;
+	private DropItems drops;
 	private boolean currentIdentify;
 	private boolean targetIdentify;
 	private int horizonalMaxOffset;
@@ -56,7 +57,8 @@ public class EdgeHarvester {
 		this.count = 0;
 		this.checkMeta = true;
 		this.horizonalMaxOffset = 0;
-		this.drops = new LinkedList<ItemStack>();
+//		this.drops = new LinkedList<ItemStack>();
+		this.drops = new DropItems();
 		this.idBreakTool = true;
 		this.findRange = 1;
 		this.breakAnything = false;
@@ -154,7 +156,8 @@ public class EdgeHarvester {
 				}
 			}
 			Coord target = path.getFirst();
-			Lib.spawnItem(world, target.x, target.y, target.z, drops);
+//			Lib.spawnItem(world, target.x, target.y, target.z, drops);
+			drops.spawn(world, target.x, target.y, target.z);
 		}
 		Lib.affectPotionEffect(player, potion, count);
 		return count;

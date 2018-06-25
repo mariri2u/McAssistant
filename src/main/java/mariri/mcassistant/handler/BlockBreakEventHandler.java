@@ -156,6 +156,7 @@ public class BlockBreakEventHandler {
 					harvester.setCheckMetadata(false);
 				}
 				harvester.setDropAfter(true);
+//				harvester.setDropAfter(false);
 				harvester.harvestChain(MINEASSIST_AFFECT_POTION, false);
 				e.setCanceled(true);
 			}
