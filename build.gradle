@@ -6,4 +6,4 @@ sourceSets.main {
     resources.srcDirs project.projectDir.name
 }
 dependencies { compile fileTree(dir: 'lib', include: '*.jar') }
-version = "1.12.2-1.0a"
+version = "1.12.2-0.1-alpha"

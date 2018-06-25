@@ -37,7 +37,7 @@ public class McAssistant {
 
         public static final String MODID = "mcassistant";
         public static final String NAME = "McAssistant";
-        public static final String VERSION = "1.12.2-1.0";
+        public static final String VERSION = "1.12.2-0.1-alpha";
         public static final String CONFIG_LANG = "mcassistant.config";
         public static Configuration CONFIG;
 
