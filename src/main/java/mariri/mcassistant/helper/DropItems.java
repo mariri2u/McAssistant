@@ -2,6 +2,7 @@ package mariri.mcassistant.helper;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.entity.item.EntityItem;
@@ -24,6 +25,12 @@ public class DropItems implements Iterable<ItemStack> {
 			drop.setCount(num);
 		} else {
 			drops.put(key, value);
+		}
+	}
+
+	public void addAll(List<ItemStack> list) {
+		for(ItemStack value : list) {
+			add(value);
 		}
 	}
 
