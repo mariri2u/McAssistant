@@ -22,7 +22,11 @@ public class DropItems implements Iterable<ItemStack> {
 		if(drops.containsKey(key)) {
 			ItemStack drop = drops.get(key);
 			int num = drop.getCount() + value.getCount();
-			drop.setCount(num);
+			if(num < drop.getMaxStackSize()) {
+				drop.setCount(num);
+			} else {
+				drops.put(key, value);
+			}
 		} else {
 			drops.put(key, value);
 		}
@@ -37,10 +41,35 @@ public class DropItems implements Iterable<ItemStack> {
 	public void spawn(World world, double x, double y, double z) {
 		for(ItemStack drop : drops.values()) {
 			EntityItem entity = new EntityItem(world, x, y, z, drop);
-			world.spawnEntity(entity);
+//			world.spawnEntity(entity);
 //			System.out.println("[DropItems]" + drop.getItem().getUnlocalizedName() + ":" + drop.getCount());
-//			Lib.spawnItem(world, x, y, z, drop);
+			Lib.spawnItem(world, x, y, z, drop);
+//			drops.remove(drop.getItem());
 		}
+		drops.clear();
+	}
+
+	public void spawn(World world, double x, double y, double z, Comparator ignore) {
+		for(Iterator<ItemStack> it = drops.values().iterator(); it.hasNext(); ) {
+			ItemStack drop = it.next();
+			if(!ignore.compareItem(drop)) {
+				EntityItem entity = new EntityItem(world, x, y, z, drop);
+	//			world.spawnEntity(entity);
+	//			System.out.println("[DropItems]" + drop.getItem().getUnlocalizedName() + ":" + drop.getCount());
+				Lib.spawnItem(world, x, y, z, drop);
+	//			drops.remove(drop.getItem());
+				it.remove();
+			}
+		}
+	}
+
+	public boolean isInclude(Comparator comparator) {
+		for(ItemStack drop : drops.values()) {
+			if(comparator.compareItem(drop)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

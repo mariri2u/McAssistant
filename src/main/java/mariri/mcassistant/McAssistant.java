@@ -37,7 +37,7 @@ public class McAssistant {
 
         public static final String MODID = "mcassistant";
         public static final String NAME = "McAssistant";
-        public static final String VERSION = "1.12.2-0.1a-dev4";
+        public static final String VERSION = "1.12.2-0.1a-alpha";
         public static final String CONFIG_LANG = "mcassistant.config";
         public static Configuration CONFIG;
 
@@ -196,7 +196,7 @@ public class McAssistant {
 	        BlockBreakEventHandler.CUTDOWN_CHAIN = CONFIG.get(Configuration.CATEGORY_GENERAL, "cutdownChainEnable", true,
 	        		"Axe that given the efficiency enchant is enable to collective destruction").getBoolean(true);
 	        CONFIG.addCustomCategoryComment(CATEGORY_CUTDOWN, "Assist to lumberjack by any axes");
-	        BlockBreakEventHandler.CUTDOWN_MAX_DISTANCE = CONFIG.get(CATEGORY_CUTDOWN, "maxRadius", 30,
+	        BlockBreakEventHandler.CUTDOWN_MAX_DISTANCE = CONFIG.get(CATEGORY_CUTDOWN, "maxRadius", 200,
 	        		COMMENT_MAX_RADIUS).getInt();
 	        BlockBreakEventHandler.CUTDOWN_BELOW =  CONFIG.get(CATEGORY_CUTDOWN, "breakBelow", false,
 	        		COMMENT_BREAK_BELOW).getBoolean(false);
@@ -217,14 +217,14 @@ public class McAssistant {
 	        		"Whether the leaf blocks also to be destroying too").getBoolean(true);
 	        BlockBreakEventHandler.CUTDOWN_CHAIN_REPLANT = CONFIG.get(CATEGORY_CUTDOWN_CHAIN, "autoReplant", true,
 	        		"Whether or not to replant the dropped sapling automatically when the leaf block are harvested").getBoolean(true);
-	        BlockBreakEventHandler.CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE = CONFIG.get(CATEGORY_CUTDOWN_CHAIN, "maxHorizonalRadius", 2,
+	        BlockBreakEventHandler.CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE = CONFIG.get(CATEGORY_CUTDOWN_CHAIN, "maxHorizonalRadius", 25,
 	        		"Specify the horizonal limit distance when leaf block breaking").getInt();
 
 	        // MineAssist
 	        BlockBreakEventHandler.MINEASSIST_ENABLE = CONFIG.get(Configuration.CATEGORY_GENERAL, "mineassistEnable", true,
 	        		"Collective destruct many ores (Require greater than iron pickaxe)").getBoolean(true);
 	        CONFIG.addCustomCategoryComment(CATEGORY_MINEASSIST, "Collective destruct many ores (Require greater than iron pickaxe)");
-	        BlockBreakEventHandler.MINEASSIST_MAX_DISTANCE = CONFIG.get(CATEGORY_MINEASSIST, "maxRadius", 10,
+	        BlockBreakEventHandler.MINEASSIST_MAX_DISTANCE = CONFIG.get(CATEGORY_MINEASSIST, "maxRadius", 200,
 	        		COMMENT_MAX_RADIUS).getInt();
 	        BlockBreakEventHandler.MINEASSIST_REQUIRE_POTION_LEVEL = Lib.stringToInt(CONFIG.get(CATEGORY_MINEASSIST, "requirePotionLevel", "",
 	        		COMMENT_REQUIRE_POTION_LEVEL).getString(), ":");
@@ -345,8 +345,8 @@ public class McAssistant {
 	        		COMMNET_REQUIRE_TOOL_LEVEL).getString(), ":");
 
 	        // TorchAssist
-	        PlayerClickHandler.TORCHASSIST_ENABLE = CONFIG.get(Configuration.CATEGORY_GENERAL, "torchassistEnable", false,
-	        		"Place torch by pickaxe and shovel on right click").getBoolean(false);
+	        PlayerClickHandler.TORCHASSIST_ENABLE = CONFIG.get(Configuration.CATEGORY_GENERAL, "torchassistEnable", true,
+	        		"Place torch by pickaxe and shovel on right click").getBoolean(true);
 
 	        // LeaveAssist
 	        PlayerClickHandler.LEAVEASSIST_ENABLE = CONFIG.get(Configuration.CATEGORY_GENERAL, "leaveassistEnable", true,

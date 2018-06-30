@@ -201,8 +201,8 @@ public class PlayerClickHandler {
 			e.setCanceled(true);
 		}
 		// トーチ補助機能
-		else if(		TORCHASSIST_ENABLE &&
-				(Lib.isPickaxeOnEquip(e.getEntityPlayer()) || Lib.isShovelOnEquip(e.getEntityPlayer())) ){
+		else if( TORCHASSIST_ENABLE && Lib.isPickaxeOnEquip(e.getEntityPlayer()) ) {
+//				(Lib.isPickaxeOnEquip(e.getEntityPlayer()) || Lib.isShovelOnEquip(e.getEntityPlayer())) ){
 
 			ItemStack current = e.getEntityPlayer().inventory.getCurrentItem();
 			ItemStack torch = new ItemStack(Blocks.TORCH, 1);
@@ -216,7 +216,9 @@ public class PlayerClickHandler {
 					}
 				}
 			}
-			if(index >= 0){
+			// 左手にブロックを持っていない場合
+			ItemStack offhand = e.getEntityPlayer().getHeldItem(EnumHand.OFF_HAND);
+			if(!(offhand.getItem() instanceof ItemBlock) && index >= 0){
 				// トーチを設置できた場合
 				ItemStack heldItem = e.getEntityPlayer().getHeldItemMainhand().copy();
 				if(		!world.getBlockState(e.getPos()).getBlock().onBlockActivated(world, e.getPos(), world.getBlockState(e.getPos()), e.getEntityPlayer(), EnumHand.MAIN_HAND, e.getFace(), 0, 0, 0) &&

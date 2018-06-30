@@ -9,27 +9,33 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Enchantments;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
 
 public class EdgeHarvester {
 
-	private int count;
+//	private int count;
 	private boolean below;
 	private int maxDist;
 	private IBlockState[] identifies;
 	private Comparator idCompare;
-	private boolean dropAfter;
+//	private boolean dropAfter;
 	private boolean isReplant;
 //	private List<ItemStack> drops;
 	private DropItems drops;
 	private boolean currentIdentify;
 	private boolean targetIdentify;
 	private int horizonalMaxOffset;
-	private Coord coreCoord;
+//	private Coord coreCoord;
 	private boolean idBreakTool;
 	private int findRange;
 	private boolean breakAnything;
@@ -44,18 +50,25 @@ public class EdgeHarvester {
 
 	protected boolean checkMeta;
 
+	private LinkedList<Coord> next;
+	private LinkedList<Coord> root;
+	protected ItemStack equipment;
+
+	private boolean square;
+	private int[][] potion;
+
 	public EdgeHarvester(World world, EntityPlayer player, BlockPos pos, IBlockState state, boolean below, int dist){
 		this.player = player;
 		this.world = world;
 		this.base = new Coord(pos.getX(), pos.getY(), pos.getZ());
 		this.path = new LinkedList<Coord>();
-		this.path.addLast(new Coord(pos.getX(), pos.getY(), pos.getZ()));
+		this.path.addLast(this.base);
 		this.state = state;
 		this.block = state.getBlock();
 		this.metadata = block.getMetaFromState(state);
 		this.below = below;
 		this.maxDist = dist;
-		this.count = 0;
+//		this.count = 0;
 		this.checkMeta = true;
 		this.horizonalMaxOffset = 0;
 //		this.drops = new LinkedList<ItemStack>();
@@ -63,6 +76,11 @@ public class EdgeHarvester {
 		this.idBreakTool = true;
 		this.findRange = 1;
 		this.breakAnything = false;
+
+		this.next = new LinkedList<Coord>();
+		this.next.add(this.base);
+		this.root = new LinkedList<Coord>();
+		this.equipment = player.getHeldItem(EnumHand.MAIN_HAND);
 	}
 
 	public EdgeHarvester setIdentifyBlocks(IBlockState[] blocks){
@@ -80,10 +98,10 @@ public class EdgeHarvester {
 		return this;
 	}
 
-	public EdgeHarvester setDropAfter(boolean value){
-		this.dropAfter = value;
-		return this;
-	}
+//	public EdgeHarvester setDropAfter(boolean value){
+//		this.dropAfter = value;
+//		return this;
+//	}
 
 	public EdgeHarvester setCheckMetadata(boolean value){
 		this.checkMeta = value;
@@ -116,11 +134,14 @@ public class EdgeHarvester {
 
 	private int getDistance(int x, int y, int z, boolean square){
 //		Coord target = path.getFirst();
-		Coord target = base;
+//		Coord target = base;
+		int dx = Math.abs(x - base.x);
+		int dy = Math.abs(y - base.y);
+		int dz = Math.abs(z - base.z);
 		if(square){
-			return Math.max(Math.abs(x - target.x), Math.max(Math.abs(y - target.y), Math.abs(z - target.z)));
+			return Math.max( dx, Math.max(dy, dz) );
 		}else{
-			return Math.abs(x - target.x) + Math.abs(y - target.y) + Math.abs(z - target.z);
+			return (int)Math.sqrt(dx*dx + dy*dy + dz*dz);
 		}
 	}
 
@@ -138,23 +159,15 @@ public class EdgeHarvester {
 //		System.out.println(prefix + " (" + c.x + ", " + c.y + ", " + c.z + ") " + sufix);
 //	}
 
-	public int harvestChain(){
-		return harvestChain(null, false);
+	public void harvestChain(){
+		harvestChain(null, false);
 	}
 
-	public int harvestChain(int[][] potion, boolean square) {
-		LinkedList<Coord> p = new LinkedList<Coord>();
-		p.add(base);
-
-		LinkedList<Coord> sap = new LinkedList<Coord>();
-
-		LinkedList<Coord> next = new LinkedList<Coord>();
-		next.add(base);
-
+	public void harvestChain(int[][] potion, boolean square) {
 //		while(next.size() > 0) {
-			long start = System.currentTimeMillis();
+//			long start = System.currentTimeMillis();
 
-			findPath(p, next.removeFirst(), next, square, true, 10);
+			findPath(next.removeFirst(), 10);
 //			Coord next = p.getLast();
 
 //			System.out.println("next: " + next.size() + ", path: " + p.size());
@@ -163,26 +176,51 @@ public class EdgeHarvester {
 //				next = p.removeLast();
 //			}
 
-			while(p.size() > 0) {
-				if(player.inventory.getCurrentItem() == null) {
+			this.potion = potion;
+			this.square = square;
+
+			int count = 0;
+			while(path.size() > 0) {
+//				if(player.inventory.getCurrentItem() == null) {
+				if(equipment == null || equipment.isEmpty()) {
+					next.clear();
 					break;
 				}
-				Coord edge = p.removeLast();
-				harvest(edge);
+				Coord edge = path.removeLast();
 				if(isReplant && edge.isReplantable()) {
-					sap.add(edge);
+					root.add(edge);
 				}
+				harvest(edge);
+				count++;
 			}
 //			if(!complete) {
 //				p.add(next);
 //			}
 
-			long end = System.currentTimeMillis();
+//			long end = System.currentTimeMillis();
+
+			if(isReplant) {
+				for(Coord edge : root) {
+					replant(edge);
+				}
+			}
+
+			if(root.size() > 0) {
+				drops.spawn(world, base.x, base.y, base.z, Comparator.SAPLING);
+			}else {
+				drops.spawn(world, base.x, base.y, base.z);
+			}
+
+			Lib.affectPotionEffect(player, potion, count);
+//			count = 0;
 
 			if(next.size() > 0) {
-				HarvestChainThread thread = new HarvestChainThread(Thread.currentThread() , path, next, sap, potion, square, 10, (int)(end-start));
-				thread.setPriority(Thread.MIN_PRIORITY);
-				thread.start();
+
+				MinecraftForge.EVENT_BUS.register(this);
+
+//				HarvestChainThread thread = new HarvestChainThread(Thread.currentThread() , path, next, sap, potion, square, 10, (int)(end-start));
+//				thread.setPriority(Thread.MIN_PRIORITY);
+//				thread.start();
 
 //			}
 
@@ -193,299 +231,71 @@ public class EdgeHarvester {
 //			}
 //		}
 
-			} else {
-				if(dropAfter){
-					if(isReplant) {
-						for(Coord edge : sap) {
-							replant(edge);
-						}
+//			} else {
+//				if(dropAfter){
+
+//				}
+			}
+	}
+
+	@SubscribeEvent
+	public void harvestByTick(ServerTickEvent e) {
+		if(Phase.END == e.phase) {
+			// 壊すブロックがある場合
+			if(next.size() > 0) {
+				Coord base = next.removeFirst();
+				if(path.size() <= 1) {
+					findPath(base, 5);
+				}
+				int count = 0;
+				while(path.size() > 0) {
+//					if(player.inventory.getCurrentItem() == null) {
+					if(equipment == null || equipment.isEmpty()) {
+						next.clear();
+						break;
 					}
+
+					Coord edge = path.getLast();
+
+					if(isReplant && edge.isReplantable()) {
+						root.add(edge);
+					}
+
+					harvest(edge);
+					count++;
+
+					path.removeLast();
+
+				}
+				if(isReplant && root.size() > 0 && drops.isInclude(Comparator.SAPLING)) {
+					replant( root.removeFirst() );
+				}
+
+				if(root.size() > 0) {
+					drops.spawn(world, base.x, base.y, base.z, Comparator.SAPLING);
+				}else {
 					drops.spawn(world, base.x, base.y, base.z);
 				}
+
 				Lib.affectPotionEffect(player, potion, count);
 			}
 
-		return count;
-	}
+			// 全て壊し終えた場合
+			if(next.isEmpty()) {
 
-	private class HarvestChainThread extends Thread{
-		Thread main;
-		LinkedList<Coord> path;
-		LinkedList<Coord> next;
-		LinkedList<Coord> sap;
-		int [][] potion;
-		boolean square;
-		int abort;
-		int time;
-		final int flame = 1000 / 60;
-
-//		ResourceManageThread manager;
-//		Object mainSleepLock;
-//		Object harvestCompleteLock;
-//		Object managerWakeLock;
-
-		private HarvestChainThread(Thread main, LinkedList<Coord> path, LinkedList<Coord> next, LinkedList<Coord> sap, int[][] potion, boolean square, int abort, int time) {
-			this.main = main;
-			this.path = new LinkedList<Coord>();
-			this.path.addAll(path);
-			this.next = new LinkedList<Coord>();
-			this.next.addAll(next);
-			this.sap = new LinkedList<Coord>();
-			this.sap.addAll(sap);
-			this.potion = potion;
-			this.square = square;
-			this.abort = abort;
-			this.time = time;
-//			this.mainSleepLock = new Object();
-//			this.harvestCompleteLock = new Object();
-//			this.managerWakeLock = new Object();
-		}
-
-		public void run() {
-//			manager.setHarvestThread(Thread.currentThread());
-//			manager.start();
-			while(next.size() > 0) {
-				long start = System.currentTimeMillis();
-
-//				synchronized(path) {
-//					synchronized(next) {
-					if(path.size() <= 1) {
-						findPath(path, next.removeFirst(), next, square, true, 10);
-					}
-//					}
-//				}
-
-//				System.out.println("next: " + next.size() + ", path: " + path.size());
-
-//				synchronized(path) {
-
-//					try {
-////							synchronized(managerWakeLock) {
-////								System.out.println("send wakeup");
-////								managerWakeLock.notify();
-////							}
-//
-////						Object mainSleepLock = new Object();
-//						ResourceManageThread manager = new ResourceManageThread(main, this, flame * 6);
-//
-//						main.suspend();
-//
-//						manager.start();
-
-//						synchronized(mainSleepLock) {
-//							System.out.println("wait main suspend");
-//							mainSleepLock.wait();
-//						}
-						while(path.size() > 0) {
-							if(player.inventory.getCurrentItem() == null) {
-								break;
-							}
-							Coord edge = path.getLast();
-
-
-								harvest(edge);
-	//							synchronized (harvestCompleteLock) {
-	//								harvestCompleteLock.notify();
-	//							}
-
-
-
-
-							path.removeLast();
-
-	//						synchronized(sap) {
-								if(isReplant && edge.isReplantable()) {
-									sap.add(edge);
-								}
-	//						}
-						}
-
-//						main.resume();
-//
-////						System.out.println("harvest complete");
-//						manager.interrupt();
-//						sleep(0);
-//					} catch (InterruptedException e) {
-//						main.resume();
-////						System.out.println("deadlock duaring harvesting");
-//						try {
-//							sleep(flame * 2);
-//						} catch (InterruptedException e1) {
-//
-//						}
-//						continue;
-//					}
-
-//				}
-
-				long end = System.currentTimeMillis();
-
-//				System.out.println("Time Find:" + (middle -start)  + ", Break:" + (end - middle));
-
-				abort = (int)(abort * ((double)(end - start) / (double)time));
-				abort = abort < 5 ? 5 : abort;
-				time = (int)(end - start);
-
-				try {
-					Thread.sleep(flame > time ? flame - time : 0);
-				}catch(InterruptedException e) {
-					continue;
-				}
-			}
-
-//			manager.interrupt();
-
-			if(dropAfter){
 				if(isReplant) {
-//					synchronized(sap) {
-//						main.suspend();
-						for(Coord edge : sap) {
-							replant(edge);
-						}
-//						main.resume();
-//					}
+					for(Coord edge : root) {
+						replant(edge);
+					}
 				}
 
-
-//				do {
-//					try {
-//						Object mainSleepLock = new Object();
-//						ResourceManageThread manager = new ResourceManageThread(main, this, flame * 6);
-//
-//						main.suspend();
-//
-//						manager.start();
-
-//						synchronized(mainSleepLock) {
-//							System.out.println("wait main suspend");
-//							mainSleepLock.wait();
-//						}
-//						System.out.println("spawn item");
-						drops.spawn(world, base.x, base.y, base.z);
-//						main.resume();
-//						System.out.println("spawn complete");
-//						manager.interrupt();
-//						sleep(0);
-//					} catch (InterruptedException e) {
-////						System.out.println("deadlock duaring spawn");
-//						try {
-//							sleep(flame * 2);
-//						} catch (InterruptedException e1) {
-//
-//						}
-//						continue;
-//					}
-//				} while(false);
-			}
-			Lib.affectPotionEffect(player, potion, count);
-
-//			System.out.println("complete thread");
-		}
-	}
-
-	public class ResourceManageThread extends Thread{
-		Thread main;
-		Thread harvest;
-
-		int flame;
-
-//		Object mainSleepLock;
-//		Object harvestCompleteLock;
-//		Object managerWakeLock;
-
-		public ResourceManageThread(Thread main, Thread harvest, int flame) {
-			this.main = main;
-			this.harvest = harvest;
-
-			this.flame = flame;
-
-//			this.mainSleepLock = mainSleepLock;
-//			this.harvestCompleteLock = harvestCompleteLock;
-//			this.managerWakeLock = managerWakeLock;
-		}
-
-		public void run() {
-//			while(true) {
-//				synchronized(managerWakeLock) {
-//					try {
-//						System.out.println("wait wake up");
-//						managerWakeLock.wait();
-//						System.out.println("wake up !!");
-//					} catch (InterruptedException e) {
-//						break;
-//					}
+//				if(dropAfter){
+					drops.spawn(world, base.x, base.y, base.z);
 //				}
 
-				try {
-//					synchronized(mainSleepLock) {
-//						main.suspend();
-//						System.out.println("suspend main");
-//						mainSleepLock.notify();
-//					}
-//					synchronized (harvestCompleteLock) {
-//						harvestCompleteLock.wait(100);
-//					}
-//					System.out.println("sleeping");
-					sleep(flame);
-//					System.out.println("interrupt");
-					harvest.interrupt();
-				} catch (InterruptedException e) {
-//					System.out.println("complete");
-				}
-//				main.resume();
-//				System.out.println("resume main");
-//			}
-		}
-	}
-
-	public int harvestChain_(int[][] potion, boolean square){
-//		while(player.inventory.getCurrentItem() != null && findEdge(square) >= 0){
-//			harvestEdge();
-//		}
-
-		long start = System.nanoTime();
-
-		if(path.size() <= 1) {
-//			findEdge(square, true, 10);
-		}
-
-		long middle = System.nanoTime();
-
-//		System.out.println("path:" + path.size());
-
-//		Coord pos = path.getFirst();
-		while(path.size() > 0) {
-			if(player.inventory.getCurrentItem() == null) {
-				break;
+				MinecraftForge.EVENT_BUS.unregister(this);
 			}
-			Coord edge = path.removeLast();
-//			if( pos.x == base.getX() && pos.y == base.getY() && pos.z == base.getZ() ) {
-//			if(path.size() == 0) {
-//				path.push(pos);
-//				findEdge(square);
-//				pos = path.pop();
-//			}
-			harvest(edge);
-			if(isReplant && edge.isReplantable()) {
-				replant(edge);
-			}
-//			System.out.println("curr:" + path.size());
 		}
-//		path.push(pos);
-
-		long end = System.nanoTime();
-
-		System.out.println("Find Time : " + (middle - start));
-		System.out.println("Break Time: " + (end - middle));
-
-		if(dropAfter){
-//			Coord target = path.getFirst();
-//			Lib.spawnItem(world, target.x, target.y, target.z, drops);
-//			drops.spawn(world, target.x, target.y, target.z);
-			drops.spawn(world, base.x, base.y, base.z);
-		}
-		Lib.affectPotionEffect(player, potion, count);
-		return count;
 	}
 
 	private void replant(Coord c) {
@@ -502,19 +312,49 @@ public class EdgeHarvester {
 		}
 	}
 
-	public void findEdge(boolean square, boolean pathRequire) {
-		findPath(path, path.getLast(), new LinkedList<Coord>(), square, pathRequire, 0);
+	public void findEdge(Coord base) {
+		int dist = getDistance(base, square);
+		boolean isInsert = false;
+
+		for(int x = base.x - findRange; x <= base.x + findRange; x++){
+			for(int y = base.y + findRange; y >= base.y - findRange; y--){
+				for(int z = base.z - findRange; z <= base.z + findRange; z++){
+
+					if(world.isAirBlock(new BlockPos(x, y, z))){
+						continue;
+					}
+
+					int d = getDistance(x, y, z, square);
+
+					boolean exist = false;
+
+					for(ListIterator<Coord> it = path.listIterator(path.size()); it.hasPrevious(); ){
+						Coord pos = it.previous();
+						if(pos.equals(x, y, z)) {
+							exist = true;
+							break;
+						}
+					}
+
+					if(exist) {
+						continue;
+					}else if( isHarvestableEdge(new Coord(x, y, z), d) ) {
+						if( d > dist ) {
+							dist = d;
+							path.addLast(new Coord(x, y, z));
+							isInsert = true;
+						}
+					}
+				}
+			}
+		}
+
+		if(isInsert && dist < maxDist) {
+			findEdge(path.getLast());
+		}
 	}
 
-//	public LinkedList<Coord> findEdge(boolean square, boolean pathRequire, int abort){
-//		return findPath(path, square, pathRequire, abort);
-//	}
-
-//	public int findPath(LinkedList<Coord> path, LinkedList<Coord> next, boolean square, boolean pathRequire, int abort){
-//		return findPath(path, path.getLast(), next, getDistance(path.getLast(), square), square, pathRequire, abort);
-//	}
-
-	public void findPath(LinkedList<Coord> path, Coord base, LinkedList<Coord> next, boolean square, boolean pathRequire, int abort){
+	public void findPath(Coord base, int abort){
 //		Coord edge = path.getLast().copy();
 //		Coord prev = edge.copy();
 //		Coord edge = base.copy();
@@ -581,7 +421,8 @@ public class EdgeHarvester {
 
 						if(exist) {
 							continue;
-						}else if( matchBlock(new BlockPos(x, y, z)) ) {
+//						}else if( d < maxDist && isHorizonal(x, z) && matchBlock(new BlockPos(x, y, z)) ) {
+						}else if( isHarvestableEdge(new Coord(x, y, z), d) ) {
 //							if( d > dist && isHorizonal(x, z) ) {
 							if( d > dist ) {
 //								edge.x = x;
@@ -599,7 +440,7 @@ public class EdgeHarvester {
 //								}
 							}
 
-							if(Comparator.LEAVE.compareBlock(world.getBlockState(new BlockPos(x, y, z)))) {
+							if( !idBreakTool && currentIdentify ) {
 								path.add(new Coord(x, y, z));
 							}else {
 								scanned.add(new Coord(x, y, z));
@@ -637,7 +478,7 @@ public class EdgeHarvester {
 		if(dist < maxDist) {
 			for( Coord c : scanned ) {
 //				result.addAll( );
-				findPath(path, c, next, square, pathRequire, abort);
+				findPath(c, abort);
 //				dist = getDistance(path.getLast(), square);
 			}
 
@@ -677,24 +518,31 @@ public class EdgeHarvester {
 		return true;
 	}
 
-	private boolean isHarvestableEdge(BlockPos pos, Coord edge, Coord prev, boolean square){
-		return isHarvestableEdge(pos, edge, prev, getDistance(edge, square), getDistance(prev, square));
-	}
+//	private boolean isHarvestableEdge(BlockPos pos, Coord edge, Coord prev, boolean square){
+//		return isHarvestableEdge(pos, edge, prev, getDistance(edge, square), getDistance(prev, square));
+//	}
 
-	private boolean isHarvestableEdge(BlockPos pos, Coord edge, Coord prev, int edgeDist, int prevDist){
+	private boolean isHarvestableEdge(Coord edge, int dist){
 		boolean result = false;
-		if(		(below || pos.getY() >= edge.y) &&
-				matchBlock(pos) && edgeDist <= prevDist && prevDist <= maxDist){
-			if(horizonalMaxOffset > 0){
-				if(currentIdentify && getHorizonalDistance(pos.getX(), pos.getY(), pos.getZ(), true) <= horizonalMaxOffset){
-					result = true;
-				}else if(world.getBlockState(prev.getPos()).getBlock() == block){
-					result = true;
-				}
-			}else{
+		BlockPos pos = edge.getPos();
+		if(		(below || pos.getY() >= base.y) &&
+				matchBlock(pos) &&
+//				edgeDist <= prevDist &&
+				dist <= maxDist &&
+				isHorizonal(edge.x, edge.z)
+				){
+
+//			if() {
+//			if(horizonalMaxOffset > 0){
+//				if(currentIdentify && getHorizonalDistance(pos.getX(), pos.getY(), pos.getZ(), true) <= horizonalMaxOffset){
+//					result = true;
+//				}else if(world.getBlockState(prev.getPos()).getBlock() == block){
+//					result = true;
+//				}
+//			}else{
 				result = true;
 			}
-		}
+//		}
 		return result;
 	}
 
@@ -710,16 +558,16 @@ public class EdgeHarvester {
 		boolean result = false;
 
 		if(breakAnything){
-			result |= Lib.isHarvestable(world.getBlockState(pos), player.inventory.getCurrentItem());
+			result |= Lib.isHarvestable(world.getBlockState(pos), equipment);
 		}
 
 		result |= matchBlock(pos, state);
 		currentIdentify = false;
 		if(!result && idCompare != null){
-			IBlockState s = world.getBlockState(pos);
-			Block b = s.getBlock();
-			int m = b.getMetaFromState(s);
-			if(idCompare.compareBlock(s)){
+//			IBlockState s = world.getBlockState(pos);
+//			Block b = s.getBlock();
+//			int m = b.getMetaFromState(s);
+			if(idCompare.compareBlock(world.getBlockState(pos))){
 				result = true;
 				currentIdentify = true;
 			}
@@ -728,7 +576,7 @@ public class EdgeHarvester {
 			for(IBlockState identify : identifies){
 				result |= matchBlock(pos, identify);
 			}
-			currentIdentify = result;
+			currentIdentify |= result;
 		}
 		return result;
 	}
@@ -744,31 +592,20 @@ public class EdgeHarvester {
 
 
 	public void harvestEdge(){
-		long start = System.nanoTime();
-
 		if(path.size() <= 1){
-			findEdge(false, false);
+			findEdge(base);
 		}
 
-		long middle = System.nanoTime();
-//		System.out.println("path" + path.size());
-
-		harvest(path.getLast());
-
-		long end = System.nanoTime();
-
-		System.out.println("Find:  " + (middle - start));
-		System.out.println("Break; " + (end -middle));
-
-		if(path.size() > 1){
-			path.removeLast();
+		if(path.size() > 0){
+			Coord edge = path.removeLast();
+			harvest(edge);
+			drops.spawn(world, edge.x, edge.y, edge.z);
 		}
-		count++;
 	}
 
 	public void harvest(Coord edge) {
-		int fortune = EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, player.inventory.getCurrentItem());
-		boolean silktouch = EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, player.inventory.getCurrentItem()) > 0;
+		int fortune = EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, equipment);
+		boolean silktouch = EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, equipment) > 0;
 //		Coord edge = path.getLast();
 		BlockPos edpos = edge.getPos();
 		IBlockState edst = world.getBlockState(edpos);
@@ -779,12 +616,11 @@ public class EdgeHarvester {
 		edblk.onBlockDestroyedByPlayer(world, edpos, edst);
 		// 葉っぱブロック破壊時はシルクタッチを無視する
 		if(isSilkHarvest(edpos, edst)){
-			ItemStack drop = new ItemStack(edblk, 1, edmeta);
+			ItemStack drop = new ItemStack(Item.getItemFromBlock(edblk), 1, edmeta);
 			if(edblk == Blocks.LIT_REDSTONE_ORE){
-				drop = new ItemStack(Blocks.REDSTONE_ORE);
+				drop = new ItemStack(Item.getItemFromBlock(Blocks.REDSTONE_ORE), 1, 0);
 			}
-			if(dropAfter) { drops.add(drop); }
-			else{ Lib.spawnItem(world, edge.x, edge.y, edge.z, drop); }
+			drops.add(drop);
 		}else{
 //			if(edblk != Blocks.AIR){
 //				System.out.println(fortune);
@@ -801,7 +637,7 @@ public class EdgeHarvester {
 //			for(ItemStack dd : d){
 //				Lib.spawnItem(world, edpos.getX(), edpos.getY(), edpos.getZ(), dd);
 //			}
-			if(dropAfter){
+//			if(dropAfter){
 //				if(edblk != Blocks.AIR){
 //					for(ItemStack d : edblk.getDrops(world, edpos, edst, fortune)){
 //						System.out.println(d.getUnlocalizedName() + " - " + d.getCount());
@@ -817,7 +653,7 @@ public class EdgeHarvester {
 //					item.getItem().setCount(0);
 //				}
 
-			}
+//			}
 //			List<ItemStack> drop = edblk.getDrops(world, edge.x, edge.y, edge.z, edmeta, fortune);
 //			if(dropAfter && drop != null && drop.size() > 0) {
 //				for(ItemStack d : drop){ drops.add(d); }
@@ -826,21 +662,21 @@ public class EdgeHarvester {
 			edblk.dropXpOnBlockBreak(world, edge.getPos(), exp);
 		}
 		// 武器の耐久値を減らす
-		if(		player.inventory.getCurrentItem() != null && edblk != Blocks.AIR &&
-				(!targetIdentify || idBreakTool) /* 葉っぱブロック破壊時は耐久消費無し */){
-			ItemStack citem = player.inventory.getCurrentItem();
-			citem.getItem().onBlockDestroyed(citem, world, edblk.getStateFromMeta(edmeta), edpos, player);
-			if(citem.getCount() <= 0){
-				player.inventory.deleteStack(player.inventory.getCurrentItem());
+		if(		equipment != null && edblk != Blocks.AIR &&
+				(!idBreakTool && idCompare.compareBlock(edst)) /* 葉っぱブロック破壊時は耐久消費無し */){
+			equipment.getItem().onBlockDestroyed(equipment, world, edblk.getStateFromMeta(edmeta), edpos, player);
+			if(equipment.isEmpty()){
+				player.inventory.deleteStack(equipment);
 //	            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
 			}
 		}
+//		count++;
 	}
 
 	private boolean isSilkHarvest(BlockPos pos, IBlockState state){
 		boolean result = false;
-		boolean silktouch = EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, player.inventory.getCurrentItem()) > 0;
-		if(horizonalMaxOffset > 0 && targetIdentify){
+		boolean silktouch = EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, equipment) > 0;
+		if(!idBreakTool && idCompare.compareBlock(state)){
 			result = false;
 		}else if(silktouch && block.canSilkHarvest(world, pos, state, player)){
 			result = true;
@@ -852,6 +688,7 @@ public class EdgeHarvester {
 		public int x;
 		public int y;
 		public int z;
+
 		public Coord(int x, int y, int z){
 			this.x = x;
 			this.y = y;
@@ -873,7 +710,7 @@ public class EdgeHarvester {
 		}
 
 		public boolean isReplantable() {
-			return dropAfter && Comparator.DIRT.compareBlock(world.getBlockState(getUnderPos()));
+			return !Comparator.LEAVE.compareBlock(world.getBlockState(this.getPos())) && Comparator.DIRT.compareBlock(world.getBlockState(getUnderPos()));
 		}
 
 		public boolean equals(int x, int y, int z) {
