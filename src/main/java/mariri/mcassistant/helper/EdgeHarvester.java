@@ -2,6 +2,7 @@ package mariri.mcassistant.helper;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -40,6 +41,7 @@ public class EdgeHarvester {
 	protected IBlockState state;
 	protected Block block;
 	protected int metadata;
+	protected BlockPos base;
 	protected LinkedList<Coord> path;
 
 	protected boolean checkMeta;
@@ -47,6 +49,7 @@ public class EdgeHarvester {
 	public EdgeHarvester(World world, EntityPlayer player, BlockPos pos, IBlockState state, boolean below, int dist){
 		this.player = player;
 		this.world = world;
+		this.base = pos;
 		this.path = new LinkedList<Coord>();
 		this.path.addLast(new Coord(pos.getX(), pos.getY(), pos.getZ()));
 		this.state = state;
@@ -140,36 +143,82 @@ public class EdgeHarvester {
 	}
 
 	public int harvestChain(int[][] potion, boolean square){
-		while(player.inventory.getCurrentItem() != null && findEdge(square) >= 0){
-			harvestEdge();
+//		while(player.inventory.getCurrentItem() != null && findEdge(square) >= 0){
+//			harvestEdge();
+//		}
+
+		long start = System.nanoTime();
+
+		if(path.size() <= 1) {
+			findEdge(square);
 		}
-		if(dropAfter){
-			// -- 再植え付け --
-			for(ItemStack items : drops){
-				Coord c = path.getFirst();
-				if(		Comparator.SAPLING.compareItem(items) &&
-						world.isAirBlock(c.getPos()) &&
-						Comparator.DIRT.compareBlock(world.getBlockState(c.getUnderPos()))){
-//					items.getItem().onItemUse(items, player, world, c.x, c.y, c.z, 0, 0, 0, 0);
-					world.setBlockState(c.getPos(), ((ItemBlock)items.getItem()).getBlock().getStateFromMeta(items.getItemDamage()), 2);
-					items.setCount(items.getCount() - 1);
-				}
+
+		long middle = System.nanoTime();
+
+//		System.out.println("path:" + path.size());
+
+//		Coord pos = path.getFirst();
+		while(path.size() > 0) {
+			if(player.inventory.getCurrentItem() == null) {
+				break;
 			}
-			Coord target = path.getFirst();
+			Coord edge = path.removeLast();
+//			if( pos.x == base.getX() && pos.y == base.getY() && pos.z == base.getZ() ) {
+//			if(path.size() == 0) {
+//				path.push(pos);
+//				findEdge(square);
+//				pos = path.pop();
+//			}
+			harvest(edge);
+			if(isReplant && edge.isReplantable()) {
+				replant(edge);
+			}
+//			System.out.println("curr:" + path.size());
+		}
+//		path.push(pos);
+
+		long end = System.nanoTime();
+
+		System.out.println("Find Time : " + (middle - start));
+		System.out.println("Break Time: " + (end - middle));
+
+		if(dropAfter){
+//			Coord target = path.getFirst();
 //			Lib.spawnItem(world, target.x, target.y, target.z, drops);
-			drops.spawn(world, target.x, target.y, target.z);
+//			drops.spawn(world, target.x, target.y, target.z);
+			drops.spawn(world, base.getX(), base.getY(), base.getZ());
 		}
 		Lib.affectPotionEffect(player, potion, count);
 		return count;
 	}
 
-	public int findEdge(boolean square){
+	private void replant(Coord c) {
+		// -- 再植え付け --
+		for(ItemStack items : drops){
+//			Coord c = path.getFirst();
+			if(		Comparator.SAPLING.compareItem(items) &&
+					world.isAirBlock(c.getPos()) &&
+					Comparator.DIRT.compareBlock(world.getBlockState(c.getUnderPos()))){
+//				items.getItem().onItemUse(items, player, world, c.x, c.y, c.z, 0, 0, 0, 0);
+				world.setBlockState(c.getPos(), ((ItemBlock)items.getItem()).getBlock().getStateFromMeta(items.getItemDamage()), 2);
+				items.setCount(items.getCount() - 1);
+			}
+		}
+	}
+
+
+	public boolean findEdge(boolean square) {
+		return findEdge(square, 0);
+	}
+
+	public boolean findEdge(boolean square, int abort){
 		Coord edge = path.getLast().copy();
 		Coord prev = edge.copy();
 		int dist = getDistance(edge, square);
 		for(int x = prev.x - findRange; x <= prev.x + findRange; x++){
 			for(int y = prev.y + findRange; y >= prev.y - findRange; y--){
 				for(int z = prev.z - findRange; z <= prev.z + findRange; z++){
+
 					int d = getDistance(x, y, z, square);
 					if(isHarvestableEdge(new BlockPos(x, y, z), edge, prev, dist, d)){
 						edge.x = x;
@@ -178,21 +227,59 @@ public class EdgeHarvester {
 						path.addLast(new Coord(x, y, z));
 						dist = d;
 						targetIdentify = currentIdentify;
+						continue;
+					}
+
+					boolean exist = false;
+
+					for(ListIterator<Coord> it = path.listIterator(path.size()); it.hasPrevious(); ){
+						Coord pos = it.previous();
+						if(pos.equals(x, y, z)) {
+							exist = true;
+							break;
+						}
+					}
+
+//					for(Coord pos : path) {
+//						if(x == pos.x && y == pos.y && z == pos.z) {
+//							exist = true;
+//							break;
+//						}
+//					}
+
+//					System.out.println("aaa:" + path.size() + ": " + exist + " - (" + x + ", " + y + ", " + z + ")");
+
+					if(exist) {
+						continue;
+					}else if( matchBlock(new BlockPos(x, y, z)) ) {
+						int index = path.size();
+						if(index  > 3) {
+							index -= 2;
+							path.add(index, new Coord(x, y, z));
+						} else {
+							path.addLast(new Coord(x, y, z));
+						}
 					}
 				}
 			}
 		}
+
+		if(abort > 0 && path.size() > abort) {
+			return false;
+		}
+
 		if(!(edge.x == prev.x && edge.y == prev.y && edge.z == prev.z) && dist <= maxDist){
-			findEdge(square);
+			findEdge(square, abort);
 		}
-		if(count > 0 && path.size() <= 1) {
-			if(world.isAirBlock(path.getFirst().getPos())){
-				return -1;
-			}else{
-				return 0;
-			}
-		}
-		return dist;
+//		if(count > 0 && path.size() <= 1) {
+//			if(world.isAirBlock(path.getFirst().getPos())){
+//				return -1;
+//			}else{
+//				return 0;
+//			}
+//		}
+//		return dist;
+		return true;
 	}
 
 	private boolean isHarvestableEdge(BlockPos pos, Coord edge, Coord prev, boolean square){
@@ -265,9 +352,21 @@ public class EdgeHarvester {
 		if(path.size() <= 1){
 			findEdge(false);
 		}
+
+//		System.out.println("path" + path.size());
+
+		harvest(path.getLast());
+
+		if(path.size() > 1){
+			path.removeLast();
+		}
+		count++;
+	}
+
+	public void harvest(Coord edge) {
 		int fortune = EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, player.inventory.getCurrentItem());
 		boolean silktouch = EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, player.inventory.getCurrentItem()) > 0;
-		Coord edge = path.getLast();
+//		Coord edge = path.getLast();
 		BlockPos edpos = edge.getPos();
 		IBlockState edst = world.getBlockState(edpos);
 		Block edblk = edst.getBlock();
@@ -325,11 +424,6 @@ public class EdgeHarvester {
 //	            world.playSoundAtEntity(player, "random.break", 1.0F, 1.0F);
 			}
 		}
-
-		if(path.size() > 1){
-			path.removeLast();
-		}
-		count++;
 	}
 
 	private boolean isSilkHarvest(BlockPos pos, IBlockState state){
@@ -365,6 +459,22 @@ public class EdgeHarvester {
 
 		public BlockPos getUnderPos(){
 			return new BlockPos(x, y - 1, z);
+		}
+
+		public boolean isReplantable() {
+			return dropAfter && Comparator.DIRT.compareBlock(world.getBlockState(getUnderPos()));
+		}
+
+		public boolean equals(int x, int y, int z) {
+			return (this.x == x && this.y == y && this.z == z);
+		}
+
+		public boolean equals(Coord c) {
+			return (this.x == c.x && this.y == c.y && this.z == c.z);
+		}
+
+		public boolean equals(BlockPos p) {
+			return (this.x == p.getX() && this.y == p.getY() && this.z == p.getZ());
 		}
 
 		@Override
