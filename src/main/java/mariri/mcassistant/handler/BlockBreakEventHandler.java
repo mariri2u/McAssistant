@@ -152,13 +152,15 @@ public class BlockBreakEventHandler {
 				EdgeHarvester harvester = new EdgeHarvester(world, player, pos, state, true, MINEASSIST_MAX_DISTANCE);
 				harvester.setCheckMetadata(true);
 				// 光っている赤石対策
-				if(block == Blocks.LIT_REDSTONE_ORE){
-					harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.REDSTONE_ORE.getBlockState().getBaseState() });
-					harvester.setCheckMetadata(false);
-				}else if(block == Blocks.REDSTONE_ORE) {
-					harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.LIT_REDSTONE_ORE.getBlockState().getBaseState() });
-					harvester.setCheckMetadata(false);
-				}
+//				if(block == Blocks.LIT_REDSTONE_ORE){
+//					harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.REDSTONE_ORE.getBlockState().getBaseState() });
+//					harvester.setCheckMetadata(false);
+//				}else if(block == Blocks.REDSTONE_ORE) {
+//					harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.LIT_REDSTONE_ORE.getBlockState().getBaseState() });
+//					harvester.setCheckMetadata(false);
+//				}else {
+					harvester.setCompareOreDict(true);
+//				}
 //				harvester.setDropAfter(true);
 //				harvester.setDropAfter(false);
 				harvester.harvestChain(MINEASSIST_AFFECT_POTION, false);

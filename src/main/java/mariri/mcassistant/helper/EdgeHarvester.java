@@ -20,6 +20,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
+import net.minecraftforge.oredict.OreDictionary;
 
 public class EdgeHarvester {
 
@@ -39,6 +40,7 @@ public class EdgeHarvester {
 	private boolean idBreakTool;
 	private int findRange;
 	private boolean breakAnything;
+	private boolean compareOreDict;
 
 	protected World world;
 	protected EntityPlayer player;
@@ -76,6 +78,7 @@ public class EdgeHarvester {
 		this.idBreakTool = true;
 		this.findRange = 1;
 		this.breakAnything = false;
+		this.compareOreDict = false;
 
 		this.next = new LinkedList<Coord>();
 		this.next.add(this.base);
@@ -125,6 +128,11 @@ public class EdgeHarvester {
 
 	public EdgeHarvester setBreakAnything(boolean value){
 		this.breakAnything = value;
+		return this;
+	}
+
+	public EdgeHarvester setCompareOreDict(boolean value) {
+		this.compareOreDict = value;
 		return this;
 	}
 
@@ -215,7 +223,6 @@ public class EdgeHarvester {
 //			count = 0;
 
 			if(next.size() > 0) {
-
 				MinecraftForge.EVENT_BUS.register(this);
 
 //				HarvestChainThread thread = new HarvestChainThread(Thread.currentThread() , path, next, sap, potion, square, 10, (int)(end-start));
@@ -281,8 +288,7 @@ public class EdgeHarvester {
 			}
 
 			// 全て壊し終えた場合
-			if(next.isEmpty()) {
-
+			if( next.isEmpty()) {
 				if(isReplant) {
 					for(Coord edge : root) {
 						replant(edge);
@@ -299,16 +305,22 @@ public class EdgeHarvester {
 	}
 
 	private void replant(Coord c) {
+		if( !world.isAirBlock(c.getPos()) ) {
+			return;
+		}
+		if( !Comparator.DIRT.compareBlock(world.getBlockState(c.getUnderPos())) ) {
+			return;
+		}
+
 		// -- 再植え付け --
 		for(ItemStack items : drops){
 //			Coord c = path.getFirst();
-			if(		Comparator.SAPLING.compareItem(items) &&
-					world.isAirBlock(c.getPos()) &&
-					Comparator.DIRT.compareBlock(world.getBlockState(c.getUnderPos()))){
-//				items.getItem().onItemUse(items, player, world, c.x, c.y, c.z, 0, 0, 0, 0);
-				world.setBlockState(c.getPos(), ((ItemBlock)items.getItem()).getBlock().getStateFromMeta(items.getItemDamage()), 2);
-				items.setCount(items.getCount() - 1);
+			if(	 !Comparator.SAPLING.compareItem(items) ) {
+				continue;
 			}
+//				items.getItem().onItemUse(items, player, world, c.x, c.y, c.z, 0, 0, 0, 0);
+			world.setBlockState(c.getPos(), ((ItemBlock)items.getItem()).getBlock().getStateFromMeta(items.getItemDamage()), 2);
+			items.setCount(items.getCount() - 1);
 		}
 	}
 
@@ -338,13 +350,17 @@ public class EdgeHarvester {
 
 					if(exist) {
 						continue;
-					}else if( isHarvestableEdge(new Coord(x, y, z), d) ) {
+					}
+
+					if( !isHarvestableEdge(new Coord(x, y, z), d) ) {
+						continue;
+					}
+
 						if( d > dist ) {
 							dist = d;
 							path.addLast(new Coord(x, y, z));
 							isInsert = true;
 						}
-					}
 				}
 			}
 		}
@@ -410,6 +426,10 @@ public class EdgeHarvester {
 							}
 						}
 
+						if(exist) {
+							continue;
+						}
+
 	//					for(Coord pos : path) {
 	//						if(x == pos.x && y == pos.y && z == pos.z) {
 	//							exist = true;
@@ -419,10 +439,12 @@ public class EdgeHarvester {
 
 	//					System.out.println("aaa:" + path.size() + ": " + exist + " - (" + x + ", " + y + ", " + z + ")");
 
-						if(exist) {
-							continue;
+//						if(exist) {
+//							continue;
 //						}else if( d < maxDist && isHorizonal(x, z) && matchBlock(new BlockPos(x, y, z)) ) {
-						}else if( isHarvestableEdge(new Coord(x, y, z), d) ) {
+						if( !isHarvestableEdge(new Coord(x, y, z), d) ) {
+							continue;
+						}
 //							if( d > dist && isHorizonal(x, z) ) {
 							if( d > dist ) {
 //								edge.x = x;
@@ -448,7 +470,7 @@ public class EdgeHarvester {
 
 //							System.out.println("d: " + d + ", dist: " + dist + ", max: " + maxDist + ", path:" + path.size() + ", scanned: " + scanned.size());
 
-						}
+
 //					}
 
 //						if(abort > 0 && path.size() >= abort) {
@@ -523,14 +545,22 @@ public class EdgeHarvester {
 //	}
 
 	private boolean isHarvestableEdge(Coord edge, int dist){
-		boolean result = false;
 		BlockPos pos = edge.getPos();
-		if(		(below || pos.getY() >= base.y) &&
-				matchBlock(pos) &&
+		if(	 !(below || pos.getY() >= base.y) ) {
+			return false;
+		}
+
+		if( !matchBlock(pos) ) {
+			return false;
+		}
 //				edgeDist <= prevDist &&
-				dist <= maxDist &&
-				isHorizonal(edge.x, edge.z)
-				){
+		if( !(dist <= maxDist) ) {
+			return false;
+		}
+
+		if( !isHorizonal(edge.x, edge.z) ){
+			return false;
+		}
 
 //			if() {
 //			if(horizonalMaxOffset > 0){
@@ -540,10 +570,10 @@ public class EdgeHarvester {
 //					result = true;
 //				}
 //			}else{
-				result = true;
-			}
+//				result = true;
+
 //		}
-		return result;
+		return true;
 	}
 
 //	private boolean checkIdentify(int x, int y, int z){
@@ -555,39 +585,107 @@ public class EdgeHarvester {
 //	}
 
 	private boolean matchBlock(BlockPos pos){
-		boolean result = false;
+		currentIdentify = false;
 
-		if(breakAnything){
-			result |= Lib.isHarvestable(world.getBlockState(pos), equipment);
+		if(identifies != null){
+			for(IBlockState identify : identifies){
+				if( matchBlock(pos, identify) ) {
+					currentIdentify = true;
+					return true;
+				}
+			}
 		}
 
-		result |= matchBlock(pos, state);
-		currentIdentify = false;
-		if(!result && idCompare != null){
+		if(idCompare != null){
 //			IBlockState s = world.getBlockState(pos);
 //			Block b = s.getBlock();
 //			int m = b.getMetaFromState(s);
 			if(idCompare.compareBlock(world.getBlockState(pos))){
-				result = true;
 				currentIdentify = true;
+				return true;
 			}
 		}
-		if(!result && identifies != null){
-			for(IBlockState identify : identifies){
-				result |= matchBlock(pos, identify);
+
+		if(breakAnything){
+			if( Lib.isHarvestable(world.getBlockState(pos), equipment) ) {
+				return true;
 			}
-			currentIdentify |= result;
 		}
-		return result;
+
+		if( matchBlock(pos, state) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private boolean matchBlock(BlockPos pos, IBlockState state){
-		boolean result = false;
-		result |= world.getBlockState(pos).getBlock() == state.getBlock();
-		if(checkMeta){
-			result &= world.getBlockState(pos).getBlock().getMetaFromState(world.getBlockState(pos)) == state.getBlock().getMetaFromState(state);
+		if(world.isAirBlock(pos)) {
+			return false;
 		}
-		return result;
+
+		if( world.getBlockState(pos).getBlock() == state.getBlock() ) {
+			if(!checkMeta){
+//				if(world.getBlockState(pos).getBlock().getMetaFromState(world.getBlockState(pos)) == state.getBlock().getMetaFromState(state)){
+					return true;
+//				}
+			}
+			if( world.getBlockState(pos).getBlock().getMetaFromState(world.getBlockState(pos)) == state.getBlock().getMetaFromState(state) ) {
+				return true;
+			}
+		}
+
+//		if( Item.getItemFromBlock(world.getBlockState(pos).getBlock()) == Item.getItemFromBlock(state.getBlock()) ) {
+//			return true;
+//		}
+
+		if(!compareOreDict) {
+			return false;
+		}
+
+		IBlockState posState = world.getBlockState(pos);
+		Block posBlock = posState.getBlock();
+		Block targetBlock = state.getBlock();
+
+		if( compareOreDict( new ItemStack(posBlock, 1, posBlock.getMetaFromState(posState)) , new ItemStack(targetBlock, 1, targetBlock.getMetaFromState(state)) ) ) {
+			return true;
+		}
+
+		NonNullList<ItemStack> posDrops =NonNullList.create();
+		posState.getBlock().getDrops(posDrops, world, pos, posState, 0);
+
+		NonNullList<ItemStack> targetDrops = NonNullList.create();
+		state.getBlock().getDrops(targetDrops, world, pos, state, 0);
+
+		for(ItemStack posDrop : posDrops) {
+			for(ItemStack targetDrop : targetDrops) {
+				if( compareOreDict(posDrop, targetDrop) ) {
+					return true;
+				}
+			}
+		}
+
+
+		return false;
+	}
+
+	private boolean compareOreDict(ItemStack a, ItemStack b) {
+		if(a.isEmpty()) {
+			return false;
+		}
+
+		if(b.isEmpty()) {
+			return false;
+		}
+
+		for( int i : OreDictionary.getOreIDs(a) ) {
+			for( int j : OreDictionary.getOreIDs(b) ) {
+				if( i == j ) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 
