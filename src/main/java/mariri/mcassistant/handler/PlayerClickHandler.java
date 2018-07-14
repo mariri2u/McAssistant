@@ -8,6 +8,7 @@ import mariri.mcassistant.helper.CropReplanter;
 import mariri.mcassistant.helper.Lib;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
@@ -20,9 +21,7 @@ import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
@@ -95,7 +94,6 @@ public class PlayerClickHandler {
 		if(BEDASSIST_ENABLE && block == Blocks.BED){
 			// いつでもリスポーンセット
 			if(BEDASSIST_SET_RESPAWN_ANYTIME){
-//	        	ChunkCoordinates respawn = new ChunkCoordinates(e.x, e.y, e.z);
 	            if (	world.provider.canRespawnHere() &&
 	            		world.getBiomeForCoordsBody(e.getPos()) != Biomes.HELL &&
 	            		world.provider.isSurfaceWorld() &&
@@ -131,19 +129,19 @@ public class PlayerClickHandler {
 						}
 					}
 				}
+				SoundType sound = block.getSoundType(state, world, e.getPos(), e.getEntityPlayer());
+				world.playSound(e.getEntityPlayer(), e.getPos(), sound.getBreakSound(), SoundCategory.BLOCKS, sound.getVolume(), sound.getPitch());
 				ItemStack citem = e.getEntityPlayer().inventory.getCurrentItem();
 				if(citem.getItem() instanceof ItemHoe){
 					EntityPlayer player = e.getEntityPlayer();
 					EntityPlayerMP playerMP = (player instanceof EntityPlayerMP) ? (EntityPlayerMP)player : null;
 					if(e.getEntityPlayer().inventory.getCurrentItem().attemptDamageItem(1, e.getEntityPlayer().getRNG(),  playerMP)){
 						e.getEntityPlayer().inventory.deleteStack(e.getEntityPlayer().inventory.getCurrentItem());
-						world.playSound(e.getEntityPlayer(), e.getPos(), SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
 					}
 				}else{
 					citem.getItem().onBlockDestroyed(citem, world, Blocks.FARMLAND.getDefaultState(), e.getPos(), e.getEntityPlayer());
 					if(citem.getCount() <= 0){
 						e.getEntityPlayer().inventory.deleteStack(e.getEntityPlayer().inventory.getCurrentItem());
-						world.playSound(e.getEntityPlayer(), e.getPos(), SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
 					}
 				}
 				Lib.affectPotionEffect(e.getEntityPlayer(), CROPASSIST_AREA_AFFECT_POTION, count);
@@ -189,13 +187,14 @@ public class PlayerClickHandler {
 					}
 				}
 			}
-			world.playSound(e.getEntityPlayer(), e.getPos(), SoundEvents.BLOCK_GRASS_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
+
+			world.playSound(null, e.getPos(), block.getSoundType().getBreakSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
 
 			ItemStack citem = e.getEntityPlayer().inventory.getCurrentItem();
 			citem.getItem().onBlockDestroyed(citem, world, state, e.getPos(), e.getEntityPlayer());
 			if(citem.getCount() <= 0){
 				e.getEntityPlayer().inventory.deleteStack(e.getEntityPlayer().inventory.getCurrentItem());
-				world.playSound(e.getEntityPlayer(), e.getPos(), new SoundEvent(new ResourceLocation("random.break")), SoundCategory.PLAYERS, 1.0F, 1.0F);
+				e.getEntityPlayer().playSound(SoundEvents.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
 			}
 			Lib.affectPotionEffect(e.getEntityPlayer(), LEAVEASSIST_AFFECT_POTION, count);
 			e.setCanceled(true);
@@ -228,7 +227,7 @@ public class PlayerClickHandler {
 					e.getEntityPlayer().inventory.decrStackSize(index, 1);
 					// トーチの使用をクライアントに通知
 					e.getEntityPlayer().onUpdate();
-					world.playSound(e.getEntityPlayer(), e.getPos(), SoundEvents.BLOCK_WOOD_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
+					world.playSound(null, e.getPos(), Blocks.TORCH.getSoundType().getPlaceSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
 				}
 				// 対象ブロックに対する右クリック処理をキャンセル
 				e.setCanceled(true);
@@ -266,7 +265,7 @@ public class PlayerClickHandler {
 						}
 					}
 				}
-				world.playSound(e.getEntityPlayer(), e.getPos(), SoundEvents.BLOCK_GRASS_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
+				world.playSound(null, e.getPos(), block.getSoundType().getBreakSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
 				Lib.affectPotionEffect(e.getEntityPlayer(), CROPASSIST_AREA_AFFECT_POTION, count);
 			}else{
 				// 収穫後の連続クリック対策（MOD独自の方法で成長を管理している場合は対象外）
@@ -276,7 +275,7 @@ public class PlayerClickHandler {
 					world.setBlockToAir(e.getPos());
 					harvester.findDrops();
 					harvester.harvestCrop();
-					world.playSound(e.getEntityPlayer(), e.getPos(), SoundEvents.BLOCK_GRASS_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
+					world.playSound(null, e.getPos(), block.getSoundType().getBreakSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
 				}
 			}
 			e.setCanceled(true);

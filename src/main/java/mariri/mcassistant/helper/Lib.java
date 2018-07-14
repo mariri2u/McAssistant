@@ -256,12 +256,7 @@ public class Lib {
 	}
 
 	public static void spawnItem(World world, double x, double y, double z, ItemStack itemstack){
-	    float f = 0.7F;
-	    double d0 = (double)(world.rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
-	    double d1 = (double)(world.rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
-	    double d2 = (double)(world.rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
-	    EntityItem entityitem =
-	    		new EntityItem(world, (double)x + d0, (double)y + d1, (double)z + d2, itemstack);
+	    EntityItem entityitem = new EntityItem(world, x, y, z, itemstack);
 	    entityitem.setDefaultPickupDelay();
 	    world.spawnEntity(entityitem);
 	}
@@ -309,10 +304,6 @@ public class Lib {
         }else{
 	        for(int i = 0; i < aaa.length; i++){
 	    		ids[i] = stringToInt(aaa[i], separator2);
-//	    		int[] s = stringToInt(aaa[i], separator2);
-//	    		ids[i] = new int[2];
-//	    		ids[i][0] = s[0];
-//	    		ids[i][1] = (s.length >= 2) ? s[1] : 0;
 	    	}
         }
     	return ids;

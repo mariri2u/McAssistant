@@ -1,6 +1,7 @@
 package mariri.mcassistant.helper;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import net.minecraft.block.Block;
@@ -75,128 +76,139 @@ public class Comparator {
 	}
 
 	public void registerClass(String[] arr){
-		if(arr != null){
-			for(String s : arr){
-				registerClass(s);
-			}
+		if(arr == null){
+			return;
+		}
+		for(String s : arr){
+			registerClass(s);
 		}
 	}
 
 	public void registerName(String[] arr){
-		if(arr != null){
-			for(String s : arr){
-				registerName(s);
-			}
+		if(arr == null){
+			return;
+		}
+		for(String s : arr){
+			registerName(s);
 		}
 	}
 
 	public void registerOreDict(String[] arr){
-		if(arr != null){
-			for(String s : arr){
-				registerOreDict(s);
-			}
+		if(arr == null){
+			return;
+		}
+		for(String s : arr){
+			registerOreDict(s);
 		}
 	}
 
 	public void registerDisallow(String[] arr){
-		if(arr != null){
-			for(String s : arr){
-				registerDisallow(s);
-			}
+		if(arr == null){
+			return;
+		}
+		for(String s : arr){
+			registerDisallow(s);
 		}
 	}
 
 	//
 	private boolean compareClass(Object obj){
-		boolean result = false;
 		try{
 			for(String regex : classes){
 				Class clazz = obj.getClass();
 				while(clazz != null){
-					result |= clazz.getCanonicalName().toLowerCase().matches(regex);
+					if( clazz.getCanonicalName().toLowerCase().matches(regex) ) {
+						return true;
+					}
 					clazz = clazz.getSuperclass();
 				}
 			}
 		}catch(NullPointerException e){}
-		return result;
+		return false;
 	}
 
 	private boolean compareName(Item item){
-		boolean result = false;
 		try{
 			for(String regex : names){
-				result |= item.getUnlocalizedName().toLowerCase().matches(regex);
+				if( item.getUnlocalizedName().toLowerCase().matches(regex) ) {
+					return true;
+				}
 			}
 		}catch(NullPointerException e){}
-		return result;
+		return false;
 	}
 
 	private boolean compareName(Block b){
-		boolean result = false;
 		try{
 			for(String regex : names){
-				result |= b.getUnlocalizedName().toLowerCase().matches(regex);
+				if( b.getUnlocalizedName().toLowerCase().matches(regex) ) {
+					return true;
+				}
 			}
 		}catch(NullPointerException e){}
-		return result;
+		return false;
 	}
 
 	private boolean compareName(Entity e){
-		boolean result = false;
 		try{
 			for(String regex : names){
-				result |= e.getName().toLowerCase().matches(regex);
+				if( e.getName().toLowerCase().matches(regex) ) {
+					return true;
+				}
 			}
 		}catch(NullPointerException ex){}
-		return result;
+		return false;
 	}
 
 	public boolean compareDisallow(Item item){
-		boolean result = false;
 		try{
 			for(String regex : disallows){
-				result |= item.getUnlocalizedName().toLowerCase().matches(regex);
+				if( item.getUnlocalizedName().toLowerCase().matches(regex) ) {
+					return true;
+				}
 			}
 		}catch(NullPointerException e){}
-		return result;
+		return false;
 	}
 
 	public boolean compareDisallow(Block b){
-		boolean result = false;
 		try{
 			for(String regex : disallows){
-				result |= b.getUnlocalizedName().toLowerCase().matches(regex);
+				if( b.getUnlocalizedName().toLowerCase().matches(regex) ) {
+					return true;
+				}
 			}
 		}catch(NullPointerException e){}
-		return result;
+		return false;
 	}
 
 	public boolean compareDisallow(Entity e){
-		boolean result = false;
 		try{
 			for(String regex : disallows){
-				result |= e.getName().toLowerCase().matches(regex);
+				if( e.getName().toLowerCase().matches(regex) ) {
+					return true;
+				}
 			}
 		}catch(NullPointerException ex){}
-		return result;
+		return false;
 	}
 
 	private boolean compareOreDict(ItemStack item){
-		boolean result = false;
 		List<ItemStack> od = findOreDict(item);
-		result = od != null && od.size() > 0;
-		return result;
+		if(od != null && od.size() > 0) {
+			return true;
+		}
+		return false;
 	}
 
 	public List<ItemStack> findOreDict(ItemStack item){
-		List<ItemStack> result = new ArrayList<ItemStack>();
 		try{
 			for(int oreId : OreDictionary.getOreIDs(item)){
 		    	if(oreId >= 0){
 		    		String oreName = OreDictionary.getOreName(oreId);
 		    		for(String regex : oredicts){
 		    			if(oreName.toLowerCase().matches(regex)){
-		    				result = OreDictionary.getOres(oreName);
+		    				return OreDictionary.getOres(oreName);
 		    			}
 		    		}
 		    	}
@@ -204,25 +216,15 @@ public class Comparator {
 
 		}catch(IllegalArgumentException e){
 		}catch(NullPointerException e){}
-		return result;
+		return new LinkedList<ItemStack>();
 	}
 
-	//
-//	public boolean compareBlock(Block block, int meta){
-//		if(compareDisallow(block)){
-//			return false;
-//		}else{
-//			return compareName(block) || compareClass(block) || compareOreDict(new ItemStack(block, 1, meta));
-//		}
-//	}
-
 	public boolean compareBlock(IBlockState state){
-//		Block block = Block.blocksList[itemstack.getItem().itemID];
 		Block block = state.getBlock();
-		int meta = block.getMetaFromState(state);
 		if(compareDisallow(block)){
 			return false;
 		}else{
+			int meta = block.getMetaFromState(state);
 			return compareName(block) || compareClass(block) || compareOreDict(new ItemStack(block, 1, meta));
 		}
 	}

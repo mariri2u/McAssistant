@@ -37,7 +37,7 @@ public class McAssistant {
 
         public static final String MODID = "mcassistant";
         public static final String NAME = "McAssistant";
-        public static final String VERSION = "1.12.2-0.1b-dev1";
+        public static final String VERSION = "1.12.2-0.1b-beta";
         public static final String CONFIG_LANG = "mcassistant.config";
         public static Configuration CONFIG;
 
@@ -422,6 +422,8 @@ public class McAssistant {
 	        PlayerClickHandler.SNEAK_INVERT =  BlockBreakEventHandler.SNEAK_INVERT;
 	        EntityInteractHandler.SNEAK_INVERT =  BlockBreakEventHandler.SNEAK_INVERT;
 	        EntityJoinWorldHandler.SNEAK_INVERT =  BlockBreakEventHandler.SNEAK_INVERT;
+	        BlockBreakEventHandler.FOLLOW_DROPS = CONFIG.get(CATEGORY_MISC, "followDrops", true,
+	        		"If true, drop items following player when chain breaked").getBoolean(true);
 
 	        // RegisterItem
 	        Comparator.UNIFY.registerOreDict(Lib.splitAndTrim(CONFIG.get(CATEGORY_UNIFY, "oreDictionary", "ore.*,").getString(), ","));

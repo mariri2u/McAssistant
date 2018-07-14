@@ -89,6 +89,7 @@ public class BlockBreakEventHandler {
 	public static boolean FLATASSIST_WOOD_BREAK_ANYTHING;
 
 	public static boolean SNEAK_INVERT;
+	public static boolean FOLLOW_DROPS;
 
 	private static List<EntityPlayer> isProcessing = new ArrayList<EntityPlayer>();
 
@@ -116,6 +117,7 @@ public class BlockBreakEventHandler {
 				EdgeHarvester harvester = new EdgeHarvester(world, player, pos, state, CUTDOWN_BELOW, CUTDOWN_MAX_DISTANCE);
 				harvester.setCheckMetadata(false);
 				harvester.setFindRange(2);
+				harvester.setAffectPotion(CUTDOWN_CHAIN_AFFECT_POTION);
 				// 木こり一括破壊の判定
 				if(CUTDOWN_CHAIN && Lib.isPotionAffected(player, CUTDOWN_CHAIN_REQUIRE_POTION_LEVEL) &&
 						player.getFoodStats().getFoodLevel() >= CUTDOWN_CHAIN_REQUIRE_HUNGER &&
@@ -128,14 +130,10 @@ public class BlockBreakEventHandler {
 							harvester.setIdentifyBlocks(new IBlockState[] { Blocks.RED_MUSHROOM_BLOCK.getBlockState().getBaseState() });
 						}else{
 							harvester.setHorizonalMaxOffset(CUTDOWN_CHAIN_MAX_HORIZONAL_DISTANCE);
-							harvester.setIdentifyBreakTool(false);
 							harvester.setReplant(CUTDOWN_CHAIN_REPLANT);
-//							harvester.setDropAfter(CUTDOWN_CHAIN_REPLANT);
-							harvester.setIdentifyComparator(Comparator.LEAVE);
-							//harvester.setCheckMetadata(true);
 						}
 					}
-					harvester.harvestChain(CUTDOWN_CHAIN_AFFECT_POTION, false);
+					harvester.harvestChain();
 					e.setCanceled(true);
 				}else if(CUTDOWN_FROM_TOP_ENABLE){
 					harvester.harvestEdge();
@@ -151,19 +149,9 @@ public class BlockBreakEventHandler {
 					Lib.isPickaxeOnEquip(player) ){
 				EdgeHarvester harvester = new EdgeHarvester(world, player, pos, state, true, MINEASSIST_MAX_DISTANCE);
 				harvester.setCheckMetadata(true);
-				// 光っている赤石対策
-//				if(block == Blocks.LIT_REDSTONE_ORE){
-//					harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.REDSTONE_ORE.getBlockState().getBaseState() });
-//					harvester.setCheckMetadata(false);
-//				}else if(block == Blocks.REDSTONE_ORE) {
-//					harvester.setIdentifyBlocks(new IBlockState[]{ Blocks.LIT_REDSTONE_ORE.getBlockState().getBaseState() });
-//					harvester.setCheckMetadata(false);
-//				}else {
-					harvester.setCompareOreDict(true);
-//				}
-//				harvester.setDropAfter(true);
-//				harvester.setDropAfter(false);
-				harvester.harvestChain(MINEASSIST_AFFECT_POTION, false);
+				harvester.setAffectPotion(MINEASSIST_AFFECT_POTION);
+				harvester.setCompareOreDict(true);
+				harvester.harvestChain();
 				e.setCanceled(true);
 			}
 			// 整地補助機能
@@ -274,7 +262,9 @@ public class BlockBreakEventHandler {
 						harvester.setCheckMetadata(false);
 					}
 
-					harvester.harvestChain(affect, true);
+					harvester.setAffectPotion(affect);
+					harvester.setBreakSquare(true);
+					harvester.harvestChain();
 					e.setCanceled(true);
 				}
 			}
