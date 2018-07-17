@@ -285,6 +285,8 @@ public class EdgeHarvester {
 	}
 
 	private void findEdge(Coord next) {
+		path.add(next);
+
 		int dist = getDistance(next);
 		boolean isInsert = false;
 
@@ -480,13 +482,8 @@ public class EdgeHarvester {
 
 
 	public void harvestEdge(){
-		// 破壊対象ブロックが無い場合は処理しない
+		// 破壊対象ブロックが無い場合はスキャンする
 		if(path.isEmpty()) {
-			return;
-		}
-
-		// 基底ブロックのみが破壊対象の場合はスキャンする
-		if(path.size() <= 1){
 			findEdge(base);
 		}
 
@@ -525,8 +522,8 @@ public class EdgeHarvester {
 
 		// 破壊処理
 		int exp = edblk.getExpDrop(edblk.getStateFromMeta(edmeta), world, edpos, fortune);
-		world.setBlockToAir(edpos);
 		edblk.onBlockDestroyedByPlayer(world, edpos, edst);
+		world.setBlockToAir(edpos);
 
 		// ドロップ処理
 		// シルクタッチを適用する場合
