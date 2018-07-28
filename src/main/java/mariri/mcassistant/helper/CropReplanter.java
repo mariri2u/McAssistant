@@ -15,6 +15,7 @@ import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -95,6 +96,7 @@ public class CropReplanter {
         for(ItemStack itemstack : drops){
             if(Comparator.SEED.compareItem(itemstack.getItem())){
                 seed = itemstack;
+                break;
             }
         }
 
@@ -103,12 +105,16 @@ public class CropReplanter {
             ItemStack product = null;
             ItemStack material = null;
             for(ItemStack m : drops){
-                InventoryCrafting recipe = new InventoryCrafting(player.inventoryContainer, 1, 1);
-                recipe.setInventorySlotContents(0, m);
-                ItemStack p = CraftingManager.findMatchingRecipe(recipe, world).getRecipeOutput();
-                if(p != null && Comparator.SEED.compareItem(p.getItem())){
-                    product = p;
-                    material = m;
+                InventoryCrafting craft = new InventoryCrafting(player.inventoryContainer, 1, 1);
+                craft.setInventorySlotContents(0, m);
+                IRecipe recipe = CraftingManager.findMatchingRecipe(craft, world);
+                if(recipe != null) {
+	                ItemStack p = recipe.getRecipeOutput();
+	                if(p != null && Comparator.SEED.compareItem(p.getItem())){
+	                    product = p;
+	                    material = m;
+	                    break;
+	                }
                 }
             }
             if(product != null){
